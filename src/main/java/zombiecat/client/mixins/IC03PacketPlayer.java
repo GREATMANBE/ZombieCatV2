@@ -10,4 +10,9 @@ public interface IC03PacketPlayer {
    void setYaw(float var1);
    @Accessor("pitch")
    void setPitch(float var1);
+
+   @Accessor("x")
+   void setX(double var1);
+   @Accessor("z")
+   void setZ(double var1);
 }

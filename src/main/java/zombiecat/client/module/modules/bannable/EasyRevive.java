@@ -15,28 +15,9 @@ public class EasyRevive extends Module {
 
    public EasyRevive() {
       super("EasyRevive", ModuleCategory.bannable);
-      /*      this.registerSetting(onlyClick = new BooleanSetting("OnlyClick", true));*/
       INSTANCE = this;
    }
 
-   /*   public void onPacket(Packet<?> packet) {
-         if (Utils.Player.isPlayerInGame()) {
-            if (packet instanceof C03PacketPlayer) {
-               C03PacketPlayer packetPlayer = ((C03PacketPlayer) packet);
-               if (packetPlayer.getRotating()) {
-                  if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY
-                          && mc.objectMouseOver.entityHit instanceof EntityPlayer
-                          && ((IEntityPlayer) mc.objectMouseOver.entityHit).getSleeping()) {
-                     *//*               if (!onlyClick.getValue() || mc.gameSettings.keyBindUseItem.isKeyDown()) {*//*
-                  float[] angle = Aimbot.calculateYawPitch(mc.thePlayer.getPositionEyes(1), mc.objectMouseOver.entityHit.getPositionVector());
-                  ((IC03PacketPlayer) packet).setYaw(angle[0]);
-                  ((IC03PacketPlayer) packet).setPitch(angle[1]);
-                  *//*               }*//*
-               }
-            }
-         }
-      }
-   }*/
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
       if (Utils.Player.isPlayerInGame()) {

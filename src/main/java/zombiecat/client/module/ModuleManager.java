@@ -36,7 +36,7 @@ public class ModuleManager {
          addModule(new ItemESP());
          this.addModule(new Fullbright());
          this.addModule(new GhostBlock());
-         //addModule(new ReviveAura());
+         addModule(new Phase());
          this.addModule(new IgnoreBlock());
          this.addModule(new GuiModule());
          this.addModule(new HUD());

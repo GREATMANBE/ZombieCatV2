@@ -19,7 +19,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 
-version = "1.7.3"
+version = "1.7.4"
 group = "zombiecat.client"
 archivesBaseName = "ZombieCat"
 
