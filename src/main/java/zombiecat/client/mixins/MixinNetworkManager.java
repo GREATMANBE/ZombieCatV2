@@ -1,6 +1,5 @@
 package zombiecat.client.mixins;
 
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,11 +10,6 @@ import zombiecat.client.module.modules.bannable.Phase;
 
 @Mixin(NetworkManager.class)
 public class MixinNetworkManager {
-
-    @Inject(method = "channelRead0", at = @At("HEAD"))
-    private void read(ChannelHandlerContext context, Packet<?> packet, CallbackInfo callback) {
-
-    }
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"))
     private void send(Packet<?> packet, CallbackInfo callback) {

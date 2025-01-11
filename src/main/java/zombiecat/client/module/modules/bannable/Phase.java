@@ -54,13 +54,14 @@ public class Phase extends Module {
       }
    }
 
-   public static void onPacket(Packet<?> packet) {
+   public static void onPacket(Packet<?> p) {
       if (isOn) {
-         if (packet instanceof C03PacketPlayer) {
-            double yaw = getDirection();
+         if (p instanceof C03PacketPlayer) {
+            C03PacketPlayer packet = (C03PacketPlayer) p;
+            float yaw = (float) getDirection();
 
-            ((IC03PacketPlayer) packet).setX(((C03PacketPlayer) packet).getPositionX() - Math.sin(yaw) * 0.00000001);
-            ((IC03PacketPlayer) packet).setZ(((C03PacketPlayer) packet).getPositionZ() + Math.cos(yaw) * 0.00000001);
+            ((IC03PacketPlayer) packet).setX(packet.getPositionX() - Math.sin(yaw) * 0.00000001);
+            ((IC03PacketPlayer) packet).setZ(packet.getPositionZ() + Math.cos(yaw) * 0.00000001);
          }
       }
    }
