@@ -8,6 +8,7 @@
     "IEntityPlayer",
     "IKeyBinding",
     "IMinecraft",
+    "MixinAbstractClientPlayer",
     "MixinBlock",
     "MixinEntityPlayer",
     "MixinEntityPlayerSP",
@@ -16,5 +17,8 @@
     "MixinItemRenderer",
     "MixinModid",
     "MixinNetworkManager"
+  ],
+  "mixins": [
+    "MixinEntity"
   ]
 }

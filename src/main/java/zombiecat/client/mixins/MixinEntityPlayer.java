@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import zombiecat.client.module.modules.bannable.EasyRevive;
 
 @Mixin(EntityPlayer.class)
-public class MixinEntityPlayer {
+public abstract class MixinEntityPlayer extends MixinEntity {
     @Shadow
     protected boolean sleeping;
     /**
