@@ -27,7 +27,7 @@ public class HUD extends Module {
    public static DescriptionSetting colourModeDesc;
    private static int hudX = 5;
    private static int hudY = 70;
-   public static Utils.HUD.PositionMode positionMode;
+   public static Utils.PositionMode positionMode;
    public static boolean showedError;
    public static final String HUDX_prefix = "HUDX~ ";
    public static final String HUDY_prefix = "HUDY~ ";
@@ -71,9 +71,9 @@ public class HUD extends Module {
          int y = hudY;
          int del = 0;
          if (!alphabeticalSort.getValue()) {
-            if (positionMode == Utils.HUD.PositionMode.UPLEFT || positionMode == Utils.HUD.PositionMode.UPRIGHT) {
+            if (positionMode == Utils.PositionMode.UPLEFT || positionMode == Utils.PositionMode.UPRIGHT) {
                ZombieCat.moduleManager.sortShortLong();
-            } else if (positionMode == Utils.HUD.PositionMode.DOWNLEFT || positionMode == Utils.HUD.PositionMode.DOWNRIGHT) {
+            } else if (positionMode == Utils.PositionMode.DOWNLEFT || positionMode == Utils.PositionMode.DOWNRIGHT) {
                ZombieCat.moduleManager.sortLongShort();
             }
          }
@@ -103,7 +103,7 @@ public class HUD extends Module {
 
          for (Module m : en) {
             if (m.isOn() && m != this) {
-               if (positionMode != Utils.HUD.PositionMode.DOWNRIGHT && positionMode != Utils.HUD.PositionMode.UPRIGHT) {
+               if (positionMode != Utils.PositionMode.DOWNRIGHT && positionMode != Utils.PositionMode.UPRIGHT) {
                   mc.fontRendererObj.drawString(m.getName(), (float)hudX, (float)y, Utils.Client.rainbow((long)del), dropShadow.getValue());
                   y += mc.fontRendererObj.FONT_HEIGHT + margin;
                   del++;
@@ -206,13 +206,13 @@ public class HUD extends Module {
          double marginY = (double)(fr.FONT_HEIGHT + 2);
          String[] var4 = t.split("-");
          ArrayList<String> var5 = Utils.Java.toArrayList(var4);
-         if (HUD.positionMode == Utils.HUD.PositionMode.UPLEFT || HUD.positionMode == Utils.HUD.PositionMode.UPRIGHT) {
+         if (HUD.positionMode == Utils.PositionMode.UPLEFT || HUD.positionMode == Utils.PositionMode.UPRIGHT) {
             var5.sort((o1, o2) -> Utils.mc.fontRendererObj.getStringWidth(o2) - Utils.mc.fontRendererObj.getStringWidth(o1));
-         } else if (HUD.positionMode == Utils.HUD.PositionMode.DOWNLEFT || HUD.positionMode == Utils.HUD.PositionMode.DOWNRIGHT) {
+         } else if (HUD.positionMode == Utils.PositionMode.DOWNLEFT || HUD.positionMode == Utils.PositionMode.DOWNRIGHT) {
             var5.sort(Comparator.comparingInt(o2 -> Utils.mc.fontRendererObj.getStringWidth(o2)));
          }
 
-         if (HUD.positionMode != Utils.HUD.PositionMode.DOWNRIGHT && HUD.positionMode != Utils.HUD.PositionMode.UPRIGHT) {
+         if (HUD.positionMode != Utils.PositionMode.DOWNRIGHT && HUD.positionMode != Utils.PositionMode.UPRIGHT) {
             for (String s : var5) {
                fr.drawString(s, (float)x, (float)y, Color.white.getRGB(), HUD.dropShadow.getValue());
                y = (int)((double)y + marginY);

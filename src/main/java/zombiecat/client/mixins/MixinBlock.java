@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import zombiecat.client.module.modules.bannable.CollideFly;
+import zombiecat.client.module.modules.bannable.Phase;
 import zombiecat.client.module.modules.legit.IgnoreBlock;
 
 import java.util.List;
@@ -49,6 +50,7 @@ public abstract class MixinBlock {
       AxisAlignedBB axisalignedbb = this.getCollisionBoundingBox(worldIn, pos, state);
       CollideFly.BlockBBEvent blockBBEvent = new CollideFly.BlockBBEvent(pos, this.blockState.getBlock(), axisalignedbb);
       CollideFly.onBB(blockBBEvent);
+      Phase.onBB(blockBBEvent);
       axisalignedbb = blockBBEvent.getBoundingBox();
       if (axisalignedbb != null && mask.intersectsWith(axisalignedbb)) {
          list.add(axisalignedbb);

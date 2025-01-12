@@ -216,27 +216,27 @@ public class Utils {
          }
       }
 
-      public static Utils.HUD.PositionMode getPostitionMode(int marginX, int marginY, double height, double width) {
+      public static Utils.PositionMode getPostitionMode(int marginX, int marginY, double height, double width) {
          int halfHeight = (int)(height / 4.0);
          int halfWidth = (int)width;
-         Utils.HUD.PositionMode positionMode = null;
+         Utils.PositionMode positionMode = null;
          if (marginY < halfHeight) {
             if (marginX < halfWidth) {
-               positionMode = Utils.HUD.PositionMode.UPLEFT;
+               positionMode = Utils.PositionMode.UPLEFT;
             }
 
             if (marginX > halfWidth) {
-               positionMode = Utils.HUD.PositionMode.UPRIGHT;
+               positionMode = Utils.PositionMode.UPRIGHT;
             }
          }
 
          if (marginY > halfHeight) {
             if (marginX < halfWidth) {
-               positionMode = Utils.HUD.PositionMode.DOWNLEFT;
+               positionMode = Utils.PositionMode.DOWNLEFT;
             }
 
             if (marginX > halfWidth) {
-               positionMode = Utils.HUD.PositionMode.DOWNRIGHT;
+               positionMode = Utils.PositionMode.DOWNRIGHT;
             }
          }
 
@@ -318,15 +318,15 @@ public class Utils {
          GL11.glEnable(3553);
          mc.entityRenderer.enableLightmap();
       }
-
-      public enum PositionMode {
-         UPLEFT,
-         UPRIGHT,
-         DOWNLEFT,
-         DOWNRIGHT
-      }
    }
 
+   public enum PositionMode {
+      UPLEFT,
+      UPRIGHT,
+      DOWNLEFT,
+      DOWNRIGHT
+   }
+   
    public static class Java {
       public static int getValue(JsonObject type, String member) {
          try {

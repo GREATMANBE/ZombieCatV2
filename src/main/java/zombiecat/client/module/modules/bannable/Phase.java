@@ -1,6 +1,8 @@
 package zombiecat.client.module.modules.bannable;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLadder;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -62,6 +64,25 @@ public class Phase extends Module {
 
             ((IC03PacketPlayer) packet).setX(packet.getPositionX() - Math.sin(yaw) * 0.00000001);
             ((IC03PacketPlayer) packet).setZ(packet.getPositionZ() + Math.cos(yaw) * 0.00000001);
+         }
+      }
+   }
+
+   public static void onBB(CollideFly.BlockBBEvent event) {
+      if (isOn) {
+         if (mc.thePlayer != null && collideBlockIntersects(mc.thePlayer.getEntityBoundingBox())) {
+            if (event.boundingBox != null && event.boundingBox.maxY > mc.thePlayer.getEntityBoundingBox().minY) {
+               AxisAlignedBB axisAlignedBB = event.boundingBox;
+
+               event.boundingBox = AxisAlignedBB.fromBounds(
+                       axisAlignedBB.maxX,
+                       mc.thePlayer.getEntityBoundingBox().minY,
+                       axisAlignedBB.maxZ,
+                       axisAlignedBB.minX,
+                       axisAlignedBB.minY,
+                       axisAlignedBB.minZ
+               );
+            }
          }
       }
    }

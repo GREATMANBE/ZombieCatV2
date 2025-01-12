@@ -19,25 +19,30 @@ public class Switch extends Module {
             QuickSwitch3.INSTANCE.disable();
          }
          this.disable();
-         return;
-      }
-      if (QuickSwitch2.INSTANCE.isOn()) {
+      } else if (QuickSwitch2.INSTANCE.isOn()) {
          QuickSwitch2.INSTANCE.disable();
          if (s4.getValue()) {
             QuickSwitch3.INSTANCE.enable();
+            if (QuickSwitch.INSTANCE.isOn()) {
+               QuickSwitch.INSTANCE.disable();
+            }
          } else {
             QuickSwitch.INSTANCE.enable();
+            if (QuickSwitch2.INSTANCE.isOn()) {
+               QuickSwitch2.INSTANCE.disable();
+            }
          }
          this.disable();
-         return;
-      }
-      if (QuickSwitch3.INSTANCE.isOn()) {
+      } else if (QuickSwitch3.INSTANCE.isOn()) {
          QuickSwitch3.INSTANCE.disable();
          QuickSwitch.INSTANCE.enable();
+         if (QuickSwitch2.INSTANCE.isOn()) {
+            QuickSwitch2.INSTANCE.disable();
+         }
          this.disable();
-         return;
+      } else {
+         QuickSwitch.INSTANCE.enable();
+         disable();
       }
-      QuickSwitch.INSTANCE.enable();
-      disable();
    }
 }
