@@ -157,6 +157,7 @@ public class Aimbot extends Module {
 
    public static boolean canWallShot(Vec3 start, Vec3 end) {
       float[] angle = calculateYawPitch(start, end);
+
       Vec3 temp = fromPolar(angle[1], angle[0]);
       Vec3 forward = new Vec3(temp.xCoord * a.getValue(), temp.yCoord * a.getValue(), temp.zCoord * a.getValue());
       Vec3 now = start;

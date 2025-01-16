@@ -32,6 +32,7 @@ public class ModuleManager {
          this.addModule(new ESP());
          this.addModule(new FakeBlock());
          this.addModule(new FastPlace());
+         addModule(new FastStair());
          this.addModule(new FireAlpha());
          this.addModule(new Freecam());
          addModule(new ItemESP());
