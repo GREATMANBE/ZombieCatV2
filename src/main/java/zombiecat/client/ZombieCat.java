@@ -18,7 +18,7 @@ import zombiecat.client.utils.Utils;
 
 @Mod(
    modid = "zombiecat",
-   version = "1.7.4",
+   version = "1.7.5",
    acceptedMinecraftVersions = "[1.8.9]"
 )
 public class ZombieCat {

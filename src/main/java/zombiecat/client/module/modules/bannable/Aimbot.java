@@ -168,13 +168,10 @@ public class Aimbot extends Module {
          if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
             return false;
          }
-         if (block == Blocks.grass || block == Blocks.tallgrass) {
+         if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs && block != Blocks.spruce_stairs || block == Blocks.iron_door || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
             return true;
          }
-         if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
-            return true;
-         }
-         if (block != Blocks.air) {
+         if (block != Blocks.air && block != Blocks.grass || block != Blocks.tallgrass) {
             return false;
          }
          now = now.add(forward);

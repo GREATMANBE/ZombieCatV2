@@ -23,6 +23,7 @@ public class ModuleManager {
          addModule(new Disable());
          this.addModule(new Aimbot());
          this.addModule(new EasyRevive());
+         addModule(new MapGB());
          this.addModule(new HidePlayer());
          this.addModule(new AntiSpam());
          this.addModule(new ChatCopy());
