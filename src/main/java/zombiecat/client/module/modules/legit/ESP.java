@@ -79,7 +79,18 @@ public class ESP extends Module {
                EntityLivingBase living = (EntityLivingBase) entity;
                ItemStack mainHand = living.getHeldItem();
                boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
-               if (holdingNothing) {
+               ItemStack helmet = living.getEquipmentInSlot(4); // Helmet slot
+               boolean isSlimeHead = false;
+               if (helmet != null && helmet.getItem() == Items.skull) {
+                  NBTTagCompound tag = helmet.getTagCompound();
+                  if (tag != null && tag.hasKey("SkullOwner", 8)) {
+                     String owner = tag.getString("SkullOwner");
+                     if (owner != null && owner.toLowerCase().contains("slime")) {
+                         isSlimeHead = true;
+                     }
+                  }
+               }
+               if (isSlimeHead && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
             }
