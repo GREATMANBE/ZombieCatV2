@@ -96,31 +96,17 @@ public class ESP extends Module {
             if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-            if (entity instanceof EntityZombie && entity.getName().equals("King Slime")) {
+            if (entity instanceof EntityZombie {
                EntityLivingBase living = (EntityLivingBase) entity;
-               boolean isHoldingNothing = living.getHeldItem() == null;
-               boolean wearingLimeArmor = false;
-               if (living.getEquipmentInSlot(1) != null && living.getEquipmentInSlot(2) != null
-                  && living.getEquipmentInSlot(3) != null && living.getEquipmentInSlot(4) != null) {
-                  wearingLimeArmor = true;
-                  for (int slot = 1; slot <= 4; slot++) {
-                     ItemStack armor = living.getEquipmentInSlot(slot);
-                     if (armor == null || !(armor.getItem() instanceof ItemArmor)) {
-                        wearingLimeArmor = false;
-                        break;
-                     }
-                     ItemArmor itemArmor = (ItemArmor) armor.getItem();
-                     if (itemArmor.getArmorMaterial() != ItemArmor.ArmorMaterial.LEATHER) {
-                        wearingLimeArmor = false;
-                        break;
-                     }
-                     if (!isArmorDyedLime(armor)) {
-                        wearingLimeArmor = false;
-                        break;
-                     }
-                  }
-               }
-               if (wearingLimeArmor && isHoldingNothing) {
+               ItemStack chest = living.getEquipmentInSlot(3);
+               ItemStack legs = living.getEquipmentInSlot(2);
+               ItemStack boots = living.getEquipmentInSlot(1);
+               ItemStack mainHand = living.getHeldItem();
+               boolean chestLime = isArmorDyedLime(chest);
+               boolean legsLime = isArmorDyedLime(legs);
+               boolean bootsLime = isArmorDyedLime(boots);
+               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
+               if (chestLime && legsLime && bootsLime && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150)); // lime color tracer
                }
             }
