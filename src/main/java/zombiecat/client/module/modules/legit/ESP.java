@@ -80,7 +80,7 @@ public class ESP extends Module {
                }
             }
          }
-      
+      }
    
       GL11.glEnd();
 
