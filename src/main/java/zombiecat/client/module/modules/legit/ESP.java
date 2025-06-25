@@ -76,18 +76,39 @@ public class ESP extends Module {
                drawTraces(entity, color);
             }
             if (entity instanceof EntityZombie) {
-               ItemStack chest = living.getEquipmentInSlot(3);
-
-               if (chest != null && chest.hasTagCompound() && chest.getTagCompound().hasKey("display", 10)) {
-                  int color = chest.getTagCompound().getCompoundTag("display").getInteger("color");
-                  System.out.println("Chestplate color (hex): " + Integer.toHexString(color));
+               EntityLivingBase living = (EntityLivingBase) entity;
+               
+               // Check main hand holding nothing
+               ItemStack mainHand = living.getHeldItem();
+               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
+               
+               // Check helmet for slime head
+               ItemStack helmet = living.getEquipmentInSlot(4);
+               boolean isSlimeHead = false;
+               if (helmet != null && helmet.getItem() == Items.skull) {
+                  NBTTagCompound tag = helmet.getTagCompound();
+                  if (tag != null && tag.hasKey("SkullOwner", 8)) {
+                     String owner = tag.getString("SkullOwner");
+                     if (owner.toLowerCase().contains("slime")) {
+                        isSlimeHead = true;
+                     }
+                  }
                }
+               
+               // Debug print chestplate color
+               ItemStack chest = living.getEquipmentInSlot(3);
+               if (chest != null && chest.hasTagCompound() && chest.getTagCompound().hasKey("display", 10)) {
+                  int chestColor = chest.getTagCompound().getCompoundTag("display").getInteger("color");
+                  System.out.println("Chestplate color (hex): " + Integer.toHexString(chestColor));
+               }
+               
                if (isSlimeHead && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
             }
          }
       }
+
    
       GL11.glEnd();
 
