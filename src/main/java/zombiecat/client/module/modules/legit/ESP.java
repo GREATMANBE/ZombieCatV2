@@ -76,32 +76,9 @@ public class ESP extends Module {
                drawTraces(entity, color);
             }
             if (entity instanceof EntityZombie) {
-               EntityLivingBase living = (EntityLivingBase) entity;
-               ItemStack chest = living.getEquipmentInSlot(3);
-               ItemStack legs = living.getEquipmentInSlot(2);
-               ItemStack boots = living.getEquipmentInSlot(1);
+               EntityLivingBase living = (EntityLivingBase) entity
                ItemStack mainHand = living.getHeldItem();
-
-               boolean chestLime = chest != null
-                  && chest.getItem() == Items.leather_chestplate
-                  && chest.hasTagCompound()
-                  && chest.getTagCompound().hasKey("display")
-                  && chest.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF55FF55;  // lime color
-               boolean legsLime = legs != null 
-                  && legs.getItem() == Items.leather_leggings
-                  && legs.hasTagCompound()
-                  && legs.getTagCompound().hasKey("display")
-                  && legs.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF55FF55;
-
-              boolean bootsLime = boots != null 
-                  && boots.getItem() == Items.leather_boots
-                  && boots.hasTagCompound()
-                  && boots.getTagCompound().hasKey("display")
-                  && boots.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF55FF55;
-               
+               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
                if (chestLime && legsLime && bootsLime) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
