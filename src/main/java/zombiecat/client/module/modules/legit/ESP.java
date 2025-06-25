@@ -15,6 +15,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.utils.Utils;
+import net.minecraft.potion.PotionEffect;
+
 
 import java.awt.*;
 import java.util.List;
