@@ -71,9 +71,16 @@ public class ESP extends Module {
             if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-            if (entity instanceof EntityZombie && entity.getName().equals("King Slime") && ((EntityLivingBase) entity).isPotionActive(Potion.damageBoost) && ((EntityLivingBase) entity).getTotalArmorValue() >= 8) {
-               Color kingColor = new Color(250, 0, 0, 150); 
-               drawTraces(entity, kingColor);
+            if (entity instanceof EntityZombie) {
+               EntityLivingBase living = (EntityLivingBase) entity;
+               PotionEffect strengthEffect = living.getActivePotionEffect(Potion.damageBoost);
+               if (strengthEffect != null) {
+                 int amp = strengthEffect.getAmplifier();
+                 if (amp == 17 || amp == 29) {
+                    Color kingColor = new Color(250, 0, 0, 150);
+                    drawTraces(entity, kingColor);
+                  }
+               }
             }
          }
       }
