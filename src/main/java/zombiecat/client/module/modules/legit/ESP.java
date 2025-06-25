@@ -68,19 +68,19 @@ public class ESP extends Module {
 
       List<Entity> entities = mc.theWorld.loadedEntityList;
       Color color = new Color(255, 0, 0, 150);
+      
       for (Entity entity : entities) {
-         if (entity != thePlayer) {
-            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
-               drawTraces(entity, color);
-            }
-            if (entity instanceof EntityLivingBase && entity.getName().contains("King Slime")) {
-               EntityLivingBase living = (EntityLivingBase) entity;
-              if (living.getMaxHealth() >= 400.0F || living.getTotalArmorValue() >= 8) {
-                 drawTraces(entity, new Color(250, 0, 0, 150));
+          if (entity != thePlayer) {
+              if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword)                       
+                  drawTraces(entity, color);
+              }
+              if (entity instanceof EntityLivingBase && entity.getName().contains("King Slime")) {
+                  EntityLivingBase living = (EntityLivingBase) entity;
+                  if (living.getMaxHealth() >= 400.0F || living.getTotalArmorValue() >= 8) {
+                      drawTraces(entity, new Color(250, 0, 0, 150));
                   }
-               }
-            }
-         }
+              }
+          }
       }
 
       GL11.glEnd();
