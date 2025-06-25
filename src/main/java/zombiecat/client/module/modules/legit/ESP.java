@@ -70,12 +70,18 @@ public class ESP extends Module {
          if (entity != thePlayer) {
             if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
-            if (entity instanceof EntityZombie && entity.getName().equals("King Slime") && ((EntityLivingBase) entity).isPotionActive(Potion.damageBoost) && ((EntityLivingBase) entity).getTotalArmorValue() >= 8) {
-               drawTraces(entity, color);
+            }
+            if (entity instanceof EntityZombie && entity.getName().equals("King Slime")) {
+               EntityLivingBase living = (EntityLivingBase) entity;
+               boolean isKingSlimeHealth = (living.getMaxHealth() == 400.0F);
+               boolean hasEnoughArmor = (living.getTotalArmorValue() >= 8);
+               if (isKingSlimeHealth) {
+                  drawTraces(entity, new Color(250, 0, 0, 150));
+               }
             }
          }
-      }
-
+      
+   
       GL11.glEnd();
 
       GL11.glEnable(GL11.GL_TEXTURE_2D);
