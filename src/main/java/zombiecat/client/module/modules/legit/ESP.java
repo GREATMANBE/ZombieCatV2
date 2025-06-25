@@ -97,16 +97,6 @@ public class ESP extends Module {
                drawTraces(entity, color);
             }
             if (entity instanceof EntityZombie) {
-               EntityLivingBase living = (EntityLivingBase) entity;
-               ItemStack chest = living.getEquipmentInSlot(3);
-               ItemStack legs = living.getEquipmentInSlot(2);
-               ItemStack boots = living.getEquipmentInSlot(1);
-               ItemStack mainHand = living.getHeldItem();
-               boolean chestLime = isArmorDyedLime(chest);
-               boolean legsLime = isArmorDyedLime(legs);
-               boolean bootsLime = isArmorDyedLime(boots);
-               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
-               if (chestLime && legsLime && bootsLime && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150)); // lime color tracer
                }
             }
