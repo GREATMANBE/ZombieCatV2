@@ -15,6 +15,10 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.utils.Utils;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagInt;
 
 import java.awt.*;
 import java.util.List;
@@ -23,6 +27,27 @@ public class ESP extends Module {
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
    }
+   
+   public boolean isArmorDyedLime(ItemStack armor) {
+        if (armor == null) return false;
+        if (!(armor.getItem() instanceof ItemArmor)) return false;
+
+        ItemArmor itemArmor = (ItemArmor) armor.getItem();
+        if (itemArmor.getArmorMaterial() != ItemArmor.ArmorMaterial.LEATHER) return false;
+
+        if (!armor.hasTagCompound()) return false;
+        NBTTagCompound tag = armor.getTagCompound();
+
+        if (!tag.hasKey("display", 10)) return false;
+
+        NBTTagCompound displayTag = tag.getCompoundTag("display");
+        if (!displayTag.hasKey("color", 99)) return false;
+
+        int color = displayTag.getInteger("color");
+        final int LIME_COLOR = 0xA7E22E;
+
+        return color == LIME_COLOR;
+    }
 
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
@@ -73,10 +98,30 @@ public class ESP extends Module {
             }
             if (entity instanceof EntityZombie && entity.getName().equals("King Slime")) {
                EntityLivingBase living = (EntityLivingBase) entity;
-               boolean isKingSlimeHealth = (living.getMaxHealth() == 400.0F);
-               boolean hasEnoughArmor = (living.getTotalArmorValue() >= 8);
-               if (isKingSlimeHealth) {
-                  drawTraces(entity, new Color(250, 0, 0, 150));
+               boolean isHoldingNothing = living.getHeldItem() == null;
+               boolean wearingLimeArmor = false;
+               if (living.getEquipmentInSlot(1) != null && living.getEquipmentInSlot(2) != null
+                  && living.getEquipmentInSlot(3) != null && living.getEquipmentInSlot(4) != null) {
+                  wearingLimeArmor = true;
+                  for (int slot = 1; slot <= 4; slot++) {
+                     ItemStack armor = living.getEquipmentInSlot(slot);
+                     if (armor == null || !(armor.getItem() instanceof ItemArmor)) {
+                        wearingLimeArmor = false;
+                        break;
+                     }
+                     ItemArmor itemArmor = (ItemArmor) armor.getItem();
+                     if (itemArmor.getArmorMaterial() != ItemArmor.ArmorMaterial.LEATHER) {
+                        wearingLimeArmor = false;
+                        break;
+                     }
+                     if (!isArmorDyedLime(armor)) {
+                        wearingLimeArmor = false;
+                        break;
+                     }
+                  }
+               }
+               if (wearingLimeArmor && isHoldingNothing) {
+                  drawTraces(entity, new Color(255, 0, 0, 150)); // lime color tracer
                }
             }
          }
