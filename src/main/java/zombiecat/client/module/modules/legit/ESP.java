@@ -96,7 +96,7 @@ public class ESP extends Module {
             if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-            if (entity instanceof EntityZombie {
+            if (entity instanceof EntityZombie) {
                EntityLivingBase living = (EntityLivingBase) entity;
                ItemStack chest = living.getEquipmentInSlot(3);
                ItemStack legs = living.getEquipmentInSlot(2);
