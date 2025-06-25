@@ -76,19 +76,11 @@ public class ESP extends Module {
                drawTraces(entity, color);
             }
             if (entity instanceof EntityZombie) {
-               EntityLivingBase living = (EntityLivingBase) entity;
-               ItemStack mainHand = living.getHeldItem();
-               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
-               ItemStack helmet = living.getEquipmentInSlot(4); // Helmet slot
-               boolean isSlimeHead = false;
-               if (helmet != null && helmet.getItem() == Items.skull) {
-                  NBTTagCompound tag = helmet.getTagCompound();
-                  if (tag != null && tag.hasKey("SkullOwner", 8)) {
-                     String owner = tag.getString("SkullOwner");
-                     if (owner != null && owner.toLowerCase().contains("slime")) {
-                         isSlimeHead = true;
-                     }
-                  }
+               ItemStack chest = living.getEquipmentInSlot(3);
+
+               if (chest != null && chest.hasTagCompound() && chest.getTagCompound().hasKey("display", 10)) {
+                  int color = chest.getTagCompound().getCompoundTag("display").getInteger("color");
+                  System.out.println("Chestplate color (hex): " + Integer.toHexString(color));
                }
                if (isSlimeHead && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
