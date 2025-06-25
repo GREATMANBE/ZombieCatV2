@@ -52,68 +52,74 @@ public class ESP extends Module {
       }
    }
 
-   public void trace() {
-      Entity thePlayer = mc.thePlayer;
-      if (thePlayer == null) return;
+public void trace() {
+    Entity thePlayer = mc.thePlayer;
+    if (thePlayer == null) return;
 
-      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-      GL11.glEnable(GL11.GL_BLEND);
-      GL11.glEnable(GL11.GL_LINE_SMOOTH);
-      GL11.glLineWidth(2);
-      GL11.glDisable(GL11.GL_TEXTURE_2D);
-      GL11.glDisable(GL11.GL_DEPTH_TEST);
-      GL11.glDepthMask(false);
+    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+    GL11.glEnable(GL11.GL_BLEND);
+    GL11.glEnable(GL11.GL_LINE_SMOOTH);
+    GL11.glLineWidth(2);
+    GL11.glDisable(GL11.GL_TEXTURE_2D);
+    GL11.glDisable(GL11.GL_DEPTH_TEST);
+    GL11.glDepthMask(false);
 
-      GL11.glBegin(GL11.GL_LINES);
+    GL11.glBegin(GL11.GL_LINES);
 
-      List<Entity> entities = mc.theWorld.loadedEntityList;
-      Color color = new Color(255, 0, 0, 150);
-      
-      for (Entity entity : entities) {
-          if (entity != thePlayer) {
-              if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword)                       
-                  drawTraces(entity, color);
-              }
-              if (entity instanceof EntityLivingBase && entity.getName().contains("King Slime")) {
-                  EntityLivingBase living = (EntityLivingBase) entity;
-                  if (living.getMaxHealth() >= 400.0F || living.getTotalArmorValue() >= 8) {
-                      drawTraces(entity, new Color(250, 0, 0, 150));
-                  }
-              }
-          }
-      }
+    List<Entity> entities = mc.theWorld.loadedEntityList;
+    Color color = new Color(255, 0, 0, 150);
 
-      GL11.glEnd();
+    for (Entity entity : entities) {
+        if (entity != thePlayer) {
+            if (entity instanceof EntityZombie
+                    && ((EntityZombie) entity).isChild()
+                    && entity.getInventory() != null
+                    && entity.getInventory()[0] != null
+                    && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+                drawTraces(entity, color);
+            }
 
-      GL11.glEnable(GL11.GL_TEXTURE_2D);
-      GL11.glDisable(GL11.GL_LINE_SMOOTH);
-      GL11.glEnable(GL11.GL_DEPTH_TEST);
-      GL11.glDepthMask(true);
-      GL11.glDisable(GL11.GL_BLEND);
-      GL11.glColor4f(1f, 1f, 1f, 1f);
-   }
-   
-   private void drawTraces(Entity entity, Color color) {
-      Entity thePlayer = mc.thePlayer;
-      if (thePlayer == null) return;
+            if (entity instanceof EntityLivingBase
+                    && entity.getName().contains("King Slime")) {
+                EntityLivingBase living = (EntityLivingBase) entity;
+                if (living.getMaxHealth() >= 400.0F || living.getTotalArmorValue() >= 8) {
+                    drawTraces(entity, new Color(250, 0, 0, 150));
+                }
+            }
+        }
+    }
 
-      double x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosX);
-      double y = (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosY);
-      double z = (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosZ);
+    GL11.glEnd();
 
-      float yaw = thePlayer.prevRotationYaw + (thePlayer.rotationYaw - thePlayer.prevRotationYaw) * Utils.Client.getTimer().renderPartialTicks;
-      float pitch = thePlayer.prevRotationPitch + (thePlayer.rotationPitch - thePlayer.prevRotationPitch) * Utils.Client.getTimer().renderPartialTicks;
+    GL11.glEnable(GL11.GL_TEXTURE_2D);
+    GL11.glDisable(GL11.GL_LINE_SMOOTH);
+    GL11.glEnable(GL11.GL_DEPTH_TEST);
+    GL11.glDepthMask(true);
+    GL11.glDisable(GL11.GL_BLEND);
+    GL11.glColor4f(1f, 1f, 1f, 1f);
+} // <-- close trace() here
 
-      Vec3 eyeVector = new Vec3(0.0, 0.0, 1.0).rotatePitch(-(float) Math.toRadians(pitch)).rotateYaw(-(float) Math.toRadians(yaw));
+private void drawTraces(Entity entity, Color color) {
+    Entity thePlayer = mc.thePlayer;
+    if (thePlayer == null) return;
 
-      GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+    double x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks
+            - mc.getRenderManager().viewerPosX);
+    double y = (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks
+            - mc.getRenderManager().viewerPosY);
+    double z = (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks
+            - mc.getRenderManager().viewerPosZ);
 
-      GL11.glVertex3d(eyeVector.xCoord, thePlayer.getEyeHeight() + eyeVector.yCoord, eyeVector.zCoord);
-      GL11.glVertex3d(x, y, z);
-      GL11.glVertex3d(x, y, z);
-      GL11.glVertex3d(x, y + entity.height, z);
-   }
+    float yaw = thePlayer.prevRotationYaw + (thePlayer.rotationYaw - thePlayer.prevRotationYaw) * Utils.Client.getTimer().renderPartialTicks;
+    float pitch = thePlayer.prevRotationPitch + (thePlayer.rotationPitch - thePlayer.prevRotationPitch) * Utils.Client.getTimer().renderPartialTicks;
+
+    Vec3 eyeVector = new Vec3(0.0, 0.0, 1.0).rotatePitch(-(float) Math.toRadians(pitch)).rotateYaw(-(float) Math.toRadians(yaw));
+
+    GL11.glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
+
+    GL11.glVertex3d(eyeVector.xCoord, thePlayer.getEyeHeight() + eyeVector.yCoord, eyeVector.zCoord);
+    GL11.glVertex3d(x, y, z);
+    GL11.glVertex3d(x, y, z);
+    GL11.glVertex3d(x, y + entity.height, z);
 }
+
