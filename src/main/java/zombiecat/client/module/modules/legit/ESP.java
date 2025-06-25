@@ -102,8 +102,7 @@ public class ESP extends Module {
                   && boots.getTagCompound().getCompoundTag("display").hasKey("color")
                   && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF55FF55;
                
-               boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
-               if (chestLime && legsLime && bootsLime && holdingNothing) {
+               if (chestLime && legsLime && bootsLime) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
             }
