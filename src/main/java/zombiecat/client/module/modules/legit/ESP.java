@@ -76,10 +76,10 @@ public class ESP extends Module {
                drawTraces(entity, color);
             }
             if (entity instanceof EntityZombie) {
-               EntityLivingBase living = (EntityLivingBase) entity
+               EntityLivingBase living = (EntityLivingBase) entity;
                ItemStack mainHand = living.getHeldItem();
                boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
-               if (chestLime && legsLime && bootsLime) {
+               if (holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
             }
