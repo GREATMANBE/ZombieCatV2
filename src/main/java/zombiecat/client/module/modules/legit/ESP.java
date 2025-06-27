@@ -14,7 +14,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
-import zombiecat.client.settings.StringSetting;
+import zombiecat.client.module.setting.impl.StringSetting;
 import zombiecat.client.utils.Utils;
 
 import java.awt.*;
