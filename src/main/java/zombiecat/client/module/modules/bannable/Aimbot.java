@@ -5,7 +5,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.passive.*;
+import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.passive.EntityChicken;
+import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -21,14 +25,17 @@ import zombiecat.client.utils.Utils;
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
+   public static BooleanSetting pup; // Added pup toggle
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
+
    public Aimbot() {
       super("Aimbot", ModuleCategory.bannable);
       this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
+      this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -52,14 +59,21 @@ public class Aimbot extends Module {
                     && !(entity instanceof EntityPig)
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
+
+               // Puppy logic: skip puppy wolves if pup toggle is off
+               if (entity instanceof EntityWolf) {
+                  EntityWolf wolf = (EntityWolf) entity;
+                  if (!pup.getValue() && wolf.isChild()) {
+                     continue;
+                  }
+               }
+
                Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
                double distance = fovDistance(entity.getPositionEyes(1).add(offset));
                if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
                   dis = distance;
                   target = entity.getPositionEyes(1).add(offset);
                } else {
-
-                  //WTF THIS??
 
                   double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                   distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
