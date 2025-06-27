@@ -1,31 +1,32 @@
 package zombiecat.client.module.modules.legit;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.*;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
+import zombiecat.client.settings.StringSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
 
 import java.awt.*;
 import java.util.List;
 
 public class ESP extends Module {
+
+   private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
+
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
+      this.addSettings(colorSetting);
    }
 
    @SubscribeEvent
@@ -42,12 +43,15 @@ public class ESP extends Module {
                     && !(entity instanceof EntityPig)
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
+
+               int color = getESPColorRGB();
+
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                } else {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
+                  Utils.HUD.drawBoxAroundEntity(entity, true, color);
                }
             }
          }
@@ -72,9 +76,13 @@ public class ESP extends Module {
       Color color = new Color(255, 0, 0, 150);
       for (Entity entity : entities) {
          if (entity != thePlayer) {
-            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
+                    && entity.getInventory() != null
+                    && entity.getInventory()[0] != null
+                    && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
+
             if (entity instanceof EntityZombie) {
                EntityLivingBase living = (EntityLivingBase) entity;
                ItemStack chest = living.getEquipmentInSlot(3);
@@ -83,33 +91,35 @@ public class ESP extends Module {
                ItemStack mainHand = living.getHeldItem();
 
                boolean chestLime = chest != null
-                  && chest.getItem() == Items.leather_chestplate
-                  && chest.hasTagCompound()
-                  && chest.getTagCompound().hasKey("display")
-                  && chest.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;  // lime color
-               boolean legsLime = legs != null 
-                  && legs.getItem() == Items.leather_leggings
-                  && legs.hasTagCompound()
-                  && legs.getTagCompound().hasKey("display")
-                  && legs.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+                       && chest.getItem() == Items.leather_chestplate
+                       && chest.hasTagCompound()
+                       && chest.getTagCompound().hasKey("display")
+                       && chest.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
 
-              boolean bootsLime = boots != null 
-                  && boots.getItem() == Items.leather_boots
-                  && boots.hasTagCompound()
-                  && boots.getTagCompound().hasKey("display")
-                  && boots.getTagCompound().getCompoundTag("display").hasKey("color")
-                  && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-               
+               boolean legsLime = legs != null
+                       && legs.getItem() == Items.leather_leggings
+                       && legs.hasTagCompound()
+                       && legs.getTagCompound().hasKey("display")
+                       && legs.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+               boolean bootsLime = boots != null
+                       && boots.getItem() == Items.leather_boots
+                       && boots.hasTagCompound()
+                       && boots.getTagCompound().hasKey("display")
+                       && boots.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
                boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
+
                if (chestLime && legsLime && bootsLime && holdingNothing) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
+                  drawTraces(entity, new Color(255, 0, 0, 150));
                }
             }
          }
       }
-   
+
       GL11.glEnd();
 
       GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -119,17 +129,14 @@ public class ESP extends Module {
       GL11.glDisable(GL11.GL_BLEND);
       GL11.glColor4f(1f, 1f, 1f, 1f);
    }
-   
+
    private void drawTraces(Entity entity, Color color) {
       Entity thePlayer = mc.thePlayer;
       if (thePlayer == null) return;
 
-      double x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosX);
-      double y = (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosY);
-      double z = (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks
-              - mc.getRenderManager().viewerPosZ);
+      double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosX;
+      double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosY;
+      double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosZ;
 
       float yaw = thePlayer.prevRotationYaw + (thePlayer.rotationYaw - thePlayer.prevRotationYaw) * Utils.Client.getTimer().renderPartialTicks;
       float pitch = thePlayer.prevRotationPitch + (thePlayer.rotationPitch - thePlayer.prevRotationPitch) * Utils.Client.getTimer().renderPartialTicks;
@@ -142,5 +149,17 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y + entity.height, z);
+   }
+
+   private int getESPColorRGB() {
+      switch (colorSetting.getValue().toLowerCase()) {
+         case "black":
+            return Color.black.getRGB();
+         case "white":
+            return Color.white.getRGB();
+         case "green":
+         default:
+            return Color.green.getRGB();
+      }
    }
 }
