@@ -1,40 +1,46 @@
 package zombiecat.client.module.setting.impl;
 
 import com.google.gson.JsonObject;
+import zombiecat.client.clickgui.Component;
+import zombiecat.client.clickgui.components.ModuleComponent;
 import zombiecat.client.module.setting.Setting;
 
 public class StringSetting extends Setting {
-    private String currentValue;
-    private String[] options;
+    private String value;
+    private final String defaultValue;
+    private final String[] options;
 
     public StringSetting(String name, String defaultValue, String... options) {
         super(name);
-        this.currentValue = defaultValue;
+        this.defaultValue = defaultValue;
+        this.value = defaultValue;
         this.options = options;
     }
 
     public String getValue() {
-        return currentValue;
+        return value;
     }
 
     public void setValue(String value) {
-        for (String option : options) {
-            if (option.equalsIgnoreCase(value)) {
-                this.currentValue = value;
-                break;
-            }
-        }
+        // Optionally, validate value is in options array
+        this.value = value;
     }
 
-    public String[] getOptions() {
-        return options;
+    @Override
+    public void resetToDefaults() {
+        this.value = defaultValue;
     }
 
     @Override
     public JsonObject getConfigAsJson() {
         JsonObject obj = new JsonObject();
-        obj.addProperty("value", currentValue);
+        obj.addProperty("value", value);
         return obj;
+    }
+
+    @Override
+    public String getSettingType() {
+        return "String";
     }
 
     @Override
@@ -45,7 +51,9 @@ public class StringSetting extends Setting {
     }
 
     @Override
-    public void resetToDefaults() {
-        this.currentValue = options.length > 0 ? options[0] : "";
+    public Component createComponent(ModuleComponent parent) {
+        // You’ll want to implement your GUI component creation here
+        // Return a new Component that allows selecting or typing a string value
+        return null; // Placeholder: implement your own GUI component
     }
 }
