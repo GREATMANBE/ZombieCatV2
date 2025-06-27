@@ -26,7 +26,7 @@ public class ESP extends Module {
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
-      this.addSettings(colorSetting);
+      this.registerSetting(colorSetting);
    }
 
    @SubscribeEvent
