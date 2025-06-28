@@ -6,7 +6,11 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntitySkeleton;
-import net.minecraft.entity.passive.*;
+import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.passive.EntityChicken;
+import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -20,16 +24,12 @@ import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
    public static BooleanSetting pup;
    public static BooleanSetting skelePriority;
    public static BooleanSetting mobPriority;
-   public static BooleanSetting instaHS;
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -42,7 +42,6 @@ public class Aimbot extends Module {
       this.registerSetting(pup = new BooleanSetting("Pup", false));
       this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
       this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
-      this.registerSetting(instaHS = new BooleanSetting("InstaHS", true));
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -125,13 +124,8 @@ public class Aimbot extends Module {
          }
 
          if (targetEntity != null && targetPos != null) {
-            // Insta Kill HeadShot override logic
-            boolean avoidHeadshot = instaHS.getValue() && isInstaKillActive();
-
             if (skelePriority.getValue() && targetHasPumpkin) {
-               if (!avoidHeadshot) {
-                  targetPos = targetPos.addVector(0, 0.2, 0);
-               }
+               targetPos = targetPos.addVector(0, 0.2, 0);
             }
 
             float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
@@ -139,36 +133,6 @@ public class Aimbot extends Module {
             mc.thePlayer.rotationPitch = angle[1];
          }
       }
-   }
-
-   private boolean isInstaKillActive() {
-      if (mc.ingameGUI == null) return false;
-
-      try {
-         Field mapBossInfosField = mc.ingameGUI.getClass().getDeclaredField("mapBossInfos");
-         mapBossInfosField.setAccessible(true);
-         Map<?, Integer> mapBossInfos = (Map<?, Integer>) mapBossInfosField.get(mc.ingameGUI);
-
-         for (Object bossInfo : mapBossInfos.keySet()) {
-            Field nameField = bossInfo.getClass().getDeclaredField("name");
-            nameField.setAccessible(true);
-            Object chatComponent = nameField.get(bossInfo);
-
-            String bossName;
-            try {
-               bossName = (String) chatComponent.getClass().getMethod("getUnformattedText").invoke(chatComponent);
-            } catch (Exception e) {
-               bossName = chatComponent.toString();
-            }
-
-            if (bossName.toLowerCase().contains("insta kill")) {
-               return true;
-            }
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      return false;
    }
 
    public static double fovDistance(Vec3 vec3) {
@@ -192,7 +156,7 @@ public class Aimbot extends Module {
       Vec3 now = start;
       while (now.distanceTo(end) > a.getValue() + 0.1) {
          Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
-         if (block == Blocks.sandstone_stairs || block == Blocks.dark_oak_stairs) { // Added dark oak stairs here
+         if (block == Blocks.sandstone_stairs) {
             return false;
          }
          if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
