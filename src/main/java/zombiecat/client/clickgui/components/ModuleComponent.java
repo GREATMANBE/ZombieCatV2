@@ -21,16 +21,16 @@ public class ModuleComponent implements Component {
     protected final Module mod;
     protected final CategoryComponent category;
 
-    // Make these protected so other classes can access directly if needed
-    protected int offsetY;
-    protected boolean expanded = false;
+    // Changed from offsetY to o, expanded to po
+    protected int o;
+    protected boolean po = false;
 
     private final List<Component> settingComponents = new ArrayList<>();
 
-    public ModuleComponent(Module mod, CategoryComponent category, int offsetY) {
+    public ModuleComponent(Module mod, CategoryComponent category, int o) {
         this.mod = mod;
         this.category = category;
-        this.offsetY = offsetY;
+        this.o = o;
 
         for (Setting setting : mod.getSettings()) {
             Component component = setting.createComponent(this);
@@ -39,22 +39,22 @@ public class ModuleComponent implements Component {
             }
         }
 
-        settingComponents.add(new BindComponent(this, offsetY));
+        settingComponents.add(new BindComponent(this, o));
     }
 
-    // Add public getters for safe access
-    public int getOffsetY() {
-        return offsetY;
+    // Optional: getters (can keep or remove if not used)
+    public int getO() {
+        return o;
     }
 
-    public boolean isExpanded() {
-        return expanded;
+    public boolean isPo() {
+        return po;
     }
 
     @Override
     public void draw() {
         int x = category.getX();
-        int y = category.getY() + offsetY;
+        int y = category.getY() + o;
         int width = category.getWidth();
 
         // Background gradient
@@ -83,7 +83,7 @@ public class ModuleComponent implements Component {
         fr.drawStringWithShadow(name, x + width / 2 - fr.getStringWidth(name) / 2, y + 4, textColor);
         GL11.glPopMatrix();
 
-        if (expanded) {
+        if (po) {
             int yOffset = y + 16;
             for (Component c : settingComponents) {
                 c.setComponentStartAt(yOffset);
@@ -95,7 +95,7 @@ public class ModuleComponent implements Component {
 
     @Override
     public void update(int mouseX, int mouseY) {
-        if (expanded) {
+        if (po) {
             for (Component c : settingComponents) {
                 c.update(mouseX, mouseY);
             }
@@ -108,12 +108,12 @@ public class ModuleComponent implements Component {
             if (button == 0 && mod.canBeEnabled()) {
                 mod.toggle();
             } else if (button == 1) {
-                expanded = !expanded;
+                po = !po;
                 category.r3nd3r();
             }
         }
 
-        if (expanded) {
+        if (po) {
             for (Component c : settingComponents) {
                 c.mouseDown(x, y, button);
             }
@@ -136,13 +136,13 @@ public class ModuleComponent implements Component {
 
     @Override
     public void setComponentStartAt(int y) {
-        this.offsetY = y;
+        this.o = y;
     }
 
     @Override
     public int getHeight() {
         int total = 16;
-        if (expanded) {
+        if (po) {
             for (Component c : settingComponents) {
                 total += c.getHeight();
             }
@@ -153,8 +153,8 @@ public class ModuleComponent implements Component {
     private boolean isHovered(int x, int y) {
         return x > category.getX()
             && x < category.getX() + category.getWidth()
-            && y > category.getY() + offsetY
-            && y < category.getY() + offsetY + 16;
+            && y > category.getY() + o
+            && y < category.getY() + o + 16;
     }
 
     // OpenGL helpers
