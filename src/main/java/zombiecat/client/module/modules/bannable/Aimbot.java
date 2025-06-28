@@ -28,6 +28,7 @@ public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
    public static BooleanSetting pup; // Added pup toggle
+   public static BooleanSetting skelePriority; // New toggle for pumpkin head priority
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -38,6 +39,7 @@ public class Aimbot extends Module {
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
       this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
+      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false)); // default off
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -51,6 +53,11 @@ public class Aimbot extends Module {
       double dis = 9999999;
       Vec3 target= null;
       Entity targetEntity = null;
+
+      double disPumpkin = 9999999;
+      Vec3 targetPumpkin = null;
+      Entity targetPumpkinEntity = null;
+
       if (Utils.Player.isPlayerInGame()) {
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
@@ -73,86 +80,108 @@ public class Aimbot extends Module {
 
                Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
                double distance = fovDistance(entity.getPositionEyes(1).add(offset));
-               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
-                  dis = distance;
-                  target = entity.getPositionEyes(1).add(offset);
-                  targetEntity = entity;
-               } else {
+               boolean canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset));
 
+               if (distance < dis && canWall) {
+                  // If SkelePriority enabled, check if entity has pumpkin on head
+                  if (skelePriority.getValue()) {
+                     if (entity instanceof EntityLivingBase) {
+                        EntityLivingBase living = (EntityLivingBase) entity;
+                        ItemStack helmet = living.getEquipmentInSlot(4);
+                        if (helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)) {
+                           if (distance < disPumpkin) {
+                              disPumpkin = distance;
+                              targetPumpkin = entity.getPositionEyes(1).add(offset);
+                              targetPumpkinEntity = entity;
+                           }
+                           // skip adding to normal target list because pumpkin priority active
+                           continue;
+                        }
+                     }
+                  }
+
+                  // Continue with normal target selection if not pumpkin or skelePriority off
+                  if (distance < dis) {
+                     dis = distance;
+                     target = entity.getPositionEyes(1).add(offset);
+                     targetEntity = entity;
+                  }
+               } else {
                   double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                   distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
-                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                     dis = distance;
-                     target = entity.getPositionVector().add(offset);
-                     targetEntity = entity;
-                  } else {
-                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
-                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                  canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
+                  if (distance < dis && canWall) {
+                     if (skelePriority.getValue()) {
+                        if (entity instanceof EntityLivingBase) {
+                           EntityLivingBase living = (EntityLivingBase) entity;
+                           ItemStack helmet = living.getEquipmentInSlot(4);
+                           if (helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)) {
+                              if (distance < disPumpkin) {
+                                 disPumpkin = distance;
+                                 targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
+                                 targetPumpkinEntity = entity;
+                              }
+                              continue;
+                           }
+                        }
+                     }
+                     if (distance < dis) {
                         dis = distance;
-                        target = entity.getPositionVector().add(offset);
+                        target = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
                         targetEntity = entity;
-                     } else {
-                        yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
-                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                           dis = distance;
-                           target = entity.getPositionVector().add(offset);
-                           targetEntity = entity;
-                        } else {
-                           yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
-                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                     }
+                  } else {
+                     // Repeat for other Y offsets: 0.2, 0.3, ..., 0.9 and finally 0.0 (no offset)
+                     for (double yMult = 0.2; yMult <= 0.9; yMult += 0.1) {
+                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0)));
+                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
+                        if (distance < dis && canWall) {
+                           if (skelePriority.getValue()) {
+                              if (entity instanceof EntityLivingBase) {
+                                 EntityLivingBase living = (EntityLivingBase) entity;
+                                 ItemStack helmet = living.getEquipmentInSlot(4);
+                                 if (helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)) {
+                                    if (distance < disPumpkin) {
+                                       disPumpkin = distance;
+                                       targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
+                                       targetPumpkinEntity = entity;
+                                    }
+                                    break;
+                                 }
+                              }
+                           }
+                           if (distance < dis) {
+                              dis = distance;
+                              target = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
+                              targetEntity = entity;
+                           }
+                           break;
+                        }
+                     }
+
+                     if (!skelePriority.getValue() || targetPumpkinEntity == null) {
+                        // Check last fallback without yOffset multiplier
+                        distance = fovDistance(entity.getPositionVector().add(offset));
+                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
+                        if (distance < dis && canWall) {
+                           if (skelePriority.getValue()) {
+                              if (entity instanceof EntityLivingBase) {
+                                 EntityLivingBase living = (EntityLivingBase) entity;
+                                 ItemStack helmet = living.getEquipmentInSlot(4);
+                                 if (helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)) {
+                                    if (distance < disPumpkin) {
+                                       disPumpkin = distance;
+                                       targetPumpkin = entity.getPositionVector().add(offset);
+                                       targetPumpkinEntity = entity;
+                                    }
+                                    continue;
+                                 }
+                              }
+                           }
+                           if (distance < dis) {
                               dis = distance;
                               target = entity.getPositionVector().add(offset);
                               targetEntity = entity;
-                           } else {
-                              yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                              distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
-                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                 dis = distance;
-                                 target = entity.getPositionVector().add(offset);
-                                 targetEntity = entity;
-                              } else {
-                                 yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                 distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
-                                 if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                    dis = distance;
-                                    target = entity.getPositionVector().add(offset);
-                                    targetEntity = entity;
-                                 } else {
-                                    yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                    distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
-                                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                       dis = distance;
-                                       target = entity.getPositionVector().add(offset);
-                                       targetEntity = entity;
-                                    } else {
-                                       yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                       distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
-                                       if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                          dis = distance;
-                                          target = entity.getPositionVector().add(offset);
-                                          targetEntity = entity;
-                                       } else {
-                                          yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                          distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
-                                          if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                             dis = distance;
-                                             target = entity.getPositionVector().add(offset);
-                                             targetEntity = entity;
-                                          } else {
-                                             distance = fovDistance(entity.getPositionVector().add(offset));
-                                             if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
-                                                dis = distance;
-                                                target = entity.getPositionVector().add(offset);
-                                                targetEntity = entity;
-                                             }
-                                          }
-                                       }
-                                    }
-                                 }
-                              }
                            }
                         }
                      }
@@ -160,6 +189,14 @@ public class Aimbot extends Module {
                }
             }
          }
+
+         // Final target selection:
+         // If skelePriority enabled and a pumpkin target exists, use it.
+         if (skelePriority.getValue() && targetPumpkin != null) {
+            target = targetPumpkin;
+            targetEntity = targetPumpkinEntity;
+         }
+
          if (target != null) {
             // Adjust target Y by +0.2 if entity has a pumpkin on head
             if (targetEntity instanceof EntityLivingBase) {
