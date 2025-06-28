@@ -21,9 +21,8 @@ public class ModuleComponent implements Component {
     protected final Module mod;
     protected final CategoryComponent category;
 
-    // Changed from offsetY to o, expanded to po
-    protected int o;
-    protected boolean po = false;
+    protected int o;           // offset from top of category
+    protected boolean po = false; // whether this module is expanded
 
     private final List<Component> settingComponents = new ArrayList<>();
 
@@ -39,16 +38,8 @@ public class ModuleComponent implements Component {
             }
         }
 
+        // Always add a keybind setting at the end
         settingComponents.add(new BindComponent(this, o));
-    }
-
-    // Optional: getters (can keep or remove if not used)
-    public int getO() {
-        return o;
-    }
-
-    public boolean isPo() {
-        return po;
     }
 
     @Override
@@ -57,26 +48,25 @@ public class ModuleComponent implements Component {
         int y = category.getY() + o;
         int width = category.getWidth();
 
-        // Background gradient
+        // Draw module background
         v((float) x, (float) y, (float) (x + width), (float) (y + 15),
             mod.isOn() ? c2 : -12829381,
             mod.isOn() ? c2 : -12302777
         );
 
         GL11.glPushMatrix();
-
         FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
+
         int textColor;
         switch ((int) GuiModule.guiTheme.getValue()) {
             case 3:
-                textColor = mod.isOn() ? c1 : mod.canBeEnabled() ? Color.LIGHT_GRAY.getRGB() : new Color(102, 102, 102).getRGB();
+                textColor = mod.isOn() ? c1 : (mod.canBeEnabled() ? Color.LIGHT_GRAY.getRGB() : new Color(102, 102, 102).getRGB());
                 break;
             case 4:
-                textColor = mod.isOn() ? c3 : mod.canBeEnabled() ? Color.LIGHT_GRAY.getRGB() : new Color(102, 102, 102).getRGB();
+                textColor = mod.isOn() ? c3 : (mod.canBeEnabled() ? Color.LIGHT_GRAY.getRGB() : new Color(102, 102, 102).getRGB());
                 break;
             default:
                 textColor = mod.canBeEnabled() ? Color.LIGHT_GRAY.getRGB() : new Color(102, 102, 102).getRGB();
-                break;
         }
 
         String name = mod.getName();
@@ -109,7 +99,7 @@ public class ModuleComponent implements Component {
                 mod.toggle();
             } else if (button == 1) {
                 po = !po;
-                category.r3nd3r();
+                category.r3nd3r(); // Force layout update on expand/collapse
             }
         }
 
@@ -141,7 +131,7 @@ public class ModuleComponent implements Component {
 
     @Override
     public int getHeight() {
-        int total = 16;
+        int total = 16; // base height
         if (po) {
             for (Component c : settingComponents) {
                 total += c.getHeight();
@@ -157,60 +147,47 @@ public class ModuleComponent implements Component {
             && y < category.getY() + o + 16;
     }
 
-    // OpenGL helpers
+    // OpenGL Helpers
+
     public static void e() {
-        GL11.glDisable(2929);
-        GL11.glEnable(3042);
-        GL11.glDisable(3553);
-        GL11.glBlendFunc(770, 771);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glDepthMask(true);
-        GL11.glEnable(2848);
-        GL11.glHint(3154, 4354);
-        GL11.glHint(3155, 4354);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+        GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_NICEST);
     }
 
     public static void f() {
-        GL11.glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glEnable(2929);
-        GL11.glDisable(2848);
-        GL11.glHint(3154, 4352);
-        GL11.glHint(3155, 4352);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_FASTEST);
+        GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_FASTEST);
         GL11.glEdgeFlag(true);
     }
 
     public static void g(int h) {
-        float a = 0.0F;
-        float r = 0.0F;
-        float g = 0.0F;
-        float b = 0.0F;
-        if (GuiModule.guiTheme.getValue() == 1.0) {
-            a = (float) (h >> 14 & 0xFF) / 255.0F;
-            r = (float) (h >> 5 & 0xFF) / 255.0F;
-            g = (float) (h >> 5 & 0xFF) / 2155.0F;
-            b = (float) (h & 0xFF);
-        } else if (GuiModule.guiTheme.getValue() == 2.0) {
-            a = (float) (h >> 14 & 0xFF) / 255.0F;
-            r = (float) (h >> 5 & 0xFF) / 2155.0F;
-            g = (float) (h >> 5 & 0xFF) / 255.0F;
-            b = (float) (h & 0xFF);
-        }
-
+        float a = (float) (h >> 24 & 0xFF) / 255.0F;
+        float r = (float) (h >> 16 & 0xFF) / 255.0F;
+        float g = (float) (h >> 8 & 0xFF) / 255.0F;
+        float b = (float) (h & 0xFF) / 255.0F;
         GL11.glColor4f(r, g, b, a);
     }
 
     public static void v(float x, float y, float x1, float y1, int t, int b) {
         e();
-        GL11.glShadeModel(7425);
-        GL11.glBegin(7);
-        g(t);
-        GL11.glVertex2f(x, y1);
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        GL11.glBegin(GL11.GL_QUADS);
+        g(t); GL11.glVertex2f(x, y1);
         GL11.glVertex2f(x1, y1);
-        g(b);
-        GL11.glVertex2f(x1, y);
+        g(b); GL11.glVertex2f(x1, y);
         GL11.glVertex2f(x, y);
         GL11.glEnd();
-        GL11.glShadeModel(7424);
+        GL11.glShadeModel(GL11.GL_FLAT);
         f();
     }
 }
