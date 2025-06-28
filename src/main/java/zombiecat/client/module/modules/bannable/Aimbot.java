@@ -20,6 +20,10 @@ import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 
+import net.minecraft.client.gui.GuiBossOverlay;
+
+import java.lang.reflect.Field;
+
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
@@ -126,18 +130,9 @@ public class Aimbot extends Module {
             boolean avoidHeadshot = instaHS.getValue() && isInstaKillActive();
 
             if (skelePriority.getValue() && targetHasPumpkin) {
-                if (avoidHeadshot) {
-                    // Try to aim lower than head (body area)
-                    Vec3 lowerTargetPos = targetPos.addVector(0, -0.3, 0); // aim 0.3 blocks below head
-
-                    // Check if we can shoot the body (no wall in between)
-                    if (canWallShot(mc.thePlayer.getPositionEyes(1), lowerTargetPos)) {
-                        targetPos = lowerTargetPos;
-                    }
-                    // else fallback to head (targetPos stays as is)
-                } else {
-                    targetPos = targetPos.addVector(0, 0.2, 0); // aim slightly above for skeleton priority (headshot)
-                }
+               if (!avoidHeadshot) {
+                  targetPos = targetPos.addVector(0, 0.2, 0);
+               }
             }
 
             float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
@@ -147,10 +142,22 @@ public class Aimbot extends Module {
       }
    }
 
+   private GuiBossOverlay getBossOverlay() {
+      try {
+         Field bossOverlayField = mc.ingameGUI.getClass().getDeclaredField("overlayBoss");
+         bossOverlayField.setAccessible(true);
+         return (GuiBossOverlay) bossOverlayField.get(mc.ingameGUI);
+      } catch (Exception e) {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
    private boolean isInstaKillActive() {
-       if (mc.ingameGUI == null || mc.ingameGUI.overlayBoss == null) return false;
-       return mc.ingameGUI.overlayBoss.mapBossInfos.keySet().stream()
-               .anyMatch(boss -> boss.toLowerCase().contains("insta kill"));
+      GuiBossOverlay bossOverlay = getBossOverlay();
+      if (bossOverlay == null) return false;
+      return bossOverlay.mapBossInfos.keySet().stream()
+              .anyMatch(boss -> boss.getUnformattedText().toLowerCase().contains("insta kill"));
    }
 
    public static double fovDistance(Vec3 vec3) {
