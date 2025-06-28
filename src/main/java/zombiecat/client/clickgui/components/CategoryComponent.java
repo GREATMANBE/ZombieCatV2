@@ -1,4 +1,4 @@
-package zombiecat.client.clickgui.components;Add commentMore actions
+package zombiecat.client.clickgui.components;
 
 import java.awt.Color;
 import java.util.ArrayList;
