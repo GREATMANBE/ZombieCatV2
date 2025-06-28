@@ -99,7 +99,9 @@ public class ModuleComponent implements Component {
                 mod.toggle();
             } else if (button == 1) {
                 po = !po;
-                category.r3nd3r(); // Force layout update on expand/collapse
+                int mouseX = org.lwjgl.input.Mouse.getX();
+                int mouseY = Minecraft.getMinecraft().displayHeight - org.lwjgl.input.Mouse.getY() - 1;
+                category.r3nd3r(mouseX, mouseY);
             }
         }
 
