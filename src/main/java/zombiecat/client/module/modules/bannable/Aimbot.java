@@ -22,6 +22,8 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
+import net.minecraft.init.Items;
+
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
