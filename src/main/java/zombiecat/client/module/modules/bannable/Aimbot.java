@@ -71,99 +71,15 @@ public class Aimbot extends Module {
                   }
                }
 
+               // Calculate predicted head position only
                Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
+               Vec3 headPos = entity.getPositionEyes(1).add(offset);
 
-               // Base position without pumpkin offset
-               Vec3 baseTargetPos = entity.getPositionEyes(1).add(offset);
-
-               double distance = fovDistance(baseTargetPos);
-               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), baseTargetPos)) {
+               double distance = fovDistance(headPos);
+               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), headPos)) {
                   dis = distance;
-                  targetPos = baseTargetPos;
+                  targetPos = headPos;
                   targetEntity = entity;
-               } else {
-
-                  double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-
-                  Vec3 pos1 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
-                  distance = fovDistance(pos1);
-                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos1)) {
-                     dis = distance;
-                     targetPos = pos1;
-                     targetEntity = entity;
-                  } else {
-                     Vec3 pos2 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0));
-                     distance = fovDistance(pos2);
-                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos2)) {
-                        dis = distance;
-                        targetPos = pos2;
-                        targetEntity = entity;
-                     } else {
-                        Vec3 pos3 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0));
-                        distance = fovDistance(pos3);
-                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos3)) {
-                           dis = distance;
-                           targetPos = pos3;
-                           targetEntity = entity;
-                        } else {
-                           Vec3 pos4 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0));
-                           distance = fovDistance(pos4);
-                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos4)) {
-                              dis = distance;
-                              targetPos = pos4;
-                              targetEntity = entity;
-                           } else {
-                              Vec3 pos5 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0));
-                              distance = fovDistance(pos5);
-                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos5)) {
-                                 dis = distance;
-                                 targetPos = pos5;
-                                 targetEntity = entity;
-                              } else {
-                                 Vec3 pos6 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0));
-                                 distance = fovDistance(pos6);
-                                 if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos6)) {
-                                    dis = distance;
-                                    targetPos = pos6;
-                                    targetEntity = entity;
-                                 } else {
-                                    Vec3 pos7 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0));
-                                    distance = fovDistance(pos7);
-                                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos7)) {
-                                       dis = distance;
-                                       targetPos = pos7;
-                                       targetEntity = entity;
-                                    } else {
-                                       Vec3 pos8 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0));
-                                       distance = fovDistance(pos8);
-                                       if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos8)) {
-                                          dis = distance;
-                                          targetPos = pos8;
-                                          targetEntity = entity;
-                                       } else {
-                                          Vec3 pos9 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0));
-                                          distance = fovDistance(pos9);
-                                          if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos9)) {
-                                             dis = distance;
-                                             targetPos = pos9;
-                                             targetEntity = entity;
-                                          } else {
-                                             Vec3 pos10 = entity.getPositionVector().add(offset);
-                                             distance = fovDistance(pos10);
-                                             if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos10)) {
-                                                dis = distance;
-                                                targetPos = pos10;
-                                                targetEntity = entity;
-                                             }
-                                          }
-                                       }
-                                    }
-                                 }
-                              }
-                           }
-                        }
-                     }
-                  }
                }
             }
          }
