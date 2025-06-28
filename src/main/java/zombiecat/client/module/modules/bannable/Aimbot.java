@@ -192,7 +192,7 @@ public class Aimbot extends Module {
       Vec3 now = start;
       while (now.distanceTo(end) > a.getValue() + 0.1) {
          Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
-         if (block == Blocks.sandstone_stairs) {
+         if (block == Blocks.sandstone_stairs || block == Blocks.dark_oak_stairs) { // Added dark oak stairs here
             return false;
          }
          if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
