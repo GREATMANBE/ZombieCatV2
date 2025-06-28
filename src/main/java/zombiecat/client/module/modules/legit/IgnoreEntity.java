@@ -27,13 +27,13 @@ public class IgnoreEntity extends Module {
     }
 
     public static boolean shouldIgnore(Entity entity) {
-        if (!isOn) return false;
+        if (!isOn || entity == null) return false;
 
         if (ignoreMobs.getValue()) {
-            // Ignore all entities
+            // Ignore all entities if setting is enabled
             return true;
         } else {
-            // Ignore all entities except hostile mobs
+            // Ignore entities that are NOT mobs (players, animals, armor stands, etc)
             return !(entity instanceof IMob);
         }
     }
