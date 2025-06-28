@@ -12,6 +12,7 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -48,6 +49,7 @@ public class Aimbot extends Module {
 
       double dis = 9999999;
       Vec3 target= null;
+      Entity targetEntity = null;
       if (Utils.Player.isPlayerInGame()) {
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
@@ -73,6 +75,7 @@ public class Aimbot extends Module {
                if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
                   dis = distance;
                   target = entity.getPositionEyes(1).add(offset);
+                  targetEntity = entity;
                } else {
 
                   double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
@@ -80,59 +83,69 @@ public class Aimbot extends Module {
                   if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                      dis = distance;
                      target = entity.getPositionVector().add(offset);
+                     targetEntity = entity;
                   } else {
                      yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                      distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
                      if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                         dis = distance;
                         target = entity.getPositionVector().add(offset);
+                        targetEntity = entity;
                      } else {
                         yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                         distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
                         if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                            dis = distance;
                            target = entity.getPositionVector().add(offset);
+                           targetEntity = entity;
                         } else {
                            yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                            distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
                            if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                               dis = distance;
                               target = entity.getPositionVector().add(offset);
+                              targetEntity = entity;
                            } else {
                               yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                               distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
                               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                  dis = distance;
                                  target = entity.getPositionVector().add(offset);
+                                 targetEntity = entity;
                               } else {
                                  yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                                  distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
                                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                     dis = distance;
                                     target = entity.getPositionVector().add(offset);
+                                    targetEntity = entity;
                                  } else {
                                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
                                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                        dis = distance;
                                        target = entity.getPositionVector().add(offset);
+                                       targetEntity = entity;
                                     } else {
                                        yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
                                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                           dis = distance;
                                           target = entity.getPositionVector().add(offset);
+                                          targetEntity = entity;
                                        } else {
                                           yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
                                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                              dis = distance;
                                              target = entity.getPositionVector().add(offset);
+                                             targetEntity = entity;
                                           } else {
                                              distance = fovDistance(entity.getPositionVector().add(offset));
                                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                                 dis = distance;
                                                 target = entity.getPositionVector().add(offset);
+                                                targetEntity = entity;
                                              }
                                           }
                                        }
@@ -147,6 +160,15 @@ public class Aimbot extends Module {
             }
          }
          if (target != null) {
+            // Adjust target Y by +0.2 if entity has a pumpkin on head
+            if (targetEntity instanceof EntityLivingBase) {
+               EntityLivingBase living = (EntityLivingBase) targetEntity;
+               ItemStack helmet = living.getEquipmentInSlot(4); // slot 4 is helmet
+               if (helmet != null && helmet.getItem() == net.minecraft.init.Items.pumpkin) {
+                  target = target.addVector(0, 0.2, 0);
+               }
+            }
+
             float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), target);
             mc.thePlayer.rotationYaw = angle[0];
             mc.thePlayer.rotationPitch = angle[1];
