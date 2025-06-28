@@ -18,10 +18,10 @@ public class ModuleComponent implements Component {
     private final int c2 = new Color(154, 2, 255).getRGB();
     private final int c3 = new Color(175, 143, 233).getRGB();
 
-    private final Module mod;
-    private final CategoryComponent category;
-    private int offsetY;
-    private boolean expanded = false;
+    protected final Module mod;
+    protected final CategoryComponent category;
+    protected int offsetY;
+    protected boolean expanded = false;
 
     private final List<Component> settingComponents = new ArrayList<>();
 
