@@ -18,8 +18,8 @@ public class ModuleComponent implements Component {
     private final int c2 = new Color(154, 2, 255).getRGB();
     private final int c3 = new Color(175, 143, 233).getRGB();
 
-    private final Module mod;
-    private final CategoryComponent category;
+    protected final Module mod;
+    protected final CategoryComponent category;
 
     // Make these protected so other classes can access directly if needed
     protected int offsetY;
