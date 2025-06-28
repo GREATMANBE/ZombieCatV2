@@ -18,8 +18,10 @@ public class ModuleComponent implements Component {
     private final int c2 = new Color(154, 2, 255).getRGB();
     private final int c3 = new Color(175, 143, 233).getRGB();
 
-    protected final Module mod;
-    protected final CategoryComponent category;
+    private final Module mod;
+    private final CategoryComponent category;
+
+    // Make these protected so other classes can access directly if needed
     protected int offsetY;
     protected boolean expanded = false;
 
@@ -38,6 +40,15 @@ public class ModuleComponent implements Component {
         }
 
         settingComponents.add(new BindComponent(this, offsetY));
+    }
+
+    // Add public getters for safe access
+    public int getOffsetY() {
+        return offsetY;
+    }
+
+    public boolean isExpanded() {
+        return expanded;
     }
 
     @Override
