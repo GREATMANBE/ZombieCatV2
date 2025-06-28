@@ -5,7 +5,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.EntityChicken;
@@ -13,7 +12,6 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -49,9 +47,7 @@ public class Aimbot extends Module {
       }
 
       double dis = 9999999;
-      Vec3 targetPos = null;
-      Entity targetEntity = null;
-
+      Vec3 target= null;
       if (Utils.Player.isPlayerInGame()) {
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
@@ -64,6 +60,7 @@ public class Aimbot extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
+               // Puppy logic: skip puppy wolves if pup toggle is off
                if (entity instanceof EntityWolf) {
                   EntityWolf wolf = (EntityWolf) entity;
                   if (!pup.getValue() && wolf.isChild()) {
@@ -71,39 +68,86 @@ public class Aimbot extends Module {
                   }
                }
 
-               // Calculate predicted head position only
                Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
-               Vec3 headPos = entity.getPositionEyes(1).add(offset);
-
-               double distance = fovDistance(headPos);
-               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), headPos)) {
+               double distance = fovDistance(entity.getPositionEyes(1).add(offset));
+               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
                   dis = distance;
-                  targetPos = headPos;
-                  targetEntity = entity;
-               }
-            }
-         }
-         
-         if (targetEntity != null && targetPos != null) {
-            boolean hasPumpkinHead = false;
+                  target = entity.getPositionEyes(1).add(offset);
+               } else {
 
-            // Check if targetEntity has pumpkin head
-            if (targetEntity instanceof EntityLivingBase) {
-               EntityLivingBase living = (EntityLivingBase) targetEntity;
-               ItemStack helmet = living.getEquipmentInSlot(4);
-               if (helmet != null) {
-                  String helmetName = helmet.getItem().getUnlocalizedName();
-                  if (helmetName.contains("pumpkin") || helmetName.contains("jackolantern")) {
-                     hasPumpkinHead = true;
+                  double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                  distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
+                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                     dis = distance;
+                     target = entity.getPositionVector().add(offset);
+                  } else {
+                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
+                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                        dis = distance;
+                        target = entity.getPositionVector().add(offset);
+                     } else {
+                        yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
+                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                           dis = distance;
+                           target = entity.getPositionVector().add(offset);
+                        } else {
+                           yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
+                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                              dis = distance;
+                              target = entity.getPositionVector().add(offset);
+                           } else {
+                              yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                              distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
+                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                 dis = distance;
+                                 target = entity.getPositionVector().add(offset);
+                              } else {
+                                 yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                 distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
+                                 if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                    dis = distance;
+                                    target = entity.getPositionVector().add(offset);
+                                 } else {
+                                    yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                    distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
+                                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                       dis = distance;
+                                       target = entity.getPositionVector().add(offset);
+                                    } else {
+                                       yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                       distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
+                                       if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                          dis = distance;
+                                          target = entity.getPositionVector().add(offset);
+                                       } else {
+                                          yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                          distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
+                                          if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                             dis = distance;
+                                             target = entity.getPositionVector().add(offset);
+                                          } else {
+                                             distance = fovDistance(entity.getPositionVector().add(offset));
+                                             if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                                dis = distance;
+                                                target = entity.getPositionVector().add(offset);
+                                             }
+                                          }
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
                   }
                }
             }
-
-            if (hasPumpkinHead) {
-               targetPos = targetPos.addVector(0, 0.2, 0);
-            }
-
-            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
+         }
+         if (target != null) {
+            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), target);
             mc.thePlayer.rotationYaw = angle[0];
             mc.thePlayer.rotationPitch = angle[1];
          }
@@ -155,23 +199,38 @@ public class Aimbot extends Module {
       float g = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
       float h = -MathHelper.cos(-pitch * 0.017453292F);
       float i = MathHelper.sin(-pitch * 0.017453292F);
-      return new Vec3((double)(g * h), (double)i, (double)(f * h));
+      return new Vec3(g * h, i, f * h);
    }
 
-   public static Vec3 getMotionVec(Entity entity, float predict, float yPredict) {
-      double x = entity.posX + entity.motionX * (double) predict;
-      double y = entity.posY + entity.motionY * (double) yPredict;
-      double z = entity.posZ + entity.motionZ * (double) predict;
-      return new Vec3(x - entity.posX, y - entity.posY, z - entity.posZ);
+   public static float[] calculateYawPitch(Vec3 start, Vec3 vec) {
+       double diffX = vec.xCoord - start.xCoord;
+      double diffY = vec.yCoord - start.yCoord;
+      double diffZ = vec.zCoord - start.zCoord;
+      double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+      float yaw = (float) Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0f;
+      float pitch = (float) (-Math.toDegrees(Math.atan2(diffY, diffXZ)));
+      return new float[]{MathHelper.wrapAngleTo180_float(yaw), MathHelper.wrapAngleTo180_float(pitch)};
    }
 
-   public static float[] calculateYawPitch(Vec3 from, Vec3 to) {
-      double difX = to.xCoord - from.xCoord;
-      double difY = to.yCoord - from.yCoord;
-      double difZ = to.zCoord - from.zCoord;
-      double dist = Math.sqrt(difX * difX + difZ * difZ);
-      float yaw = (float) Math.toDegrees(Math.atan2(difZ, difX)) - 90.0F;
-      float pitch = (float) -Math.toDegrees(Math.atan2(difY, dist));
-      return new float[]{yaw, pitch};
+   public static Vec3 getMotionVec(Entity entity, float ticks, float yTicks) {
+      double dX = entity.posX - entity.prevPosX;
+      double dY = entity.posY - entity.prevPosY;
+      double dZ = entity.posZ - entity.prevPosZ;
+      double entityMotionPosX = 0;
+      double entityMotionPosY = 0;
+      double entityMotionPosZ = 0;
+       for (double i = 1; i <= ticks; i = i + 0.3) {
+          for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
+             if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
+                entityMotionPosX = dX * i;
+                entityMotionPosY = dY * i2;
+                entityMotionPosZ = dZ * i;
+             } else {
+                break;
+             }
+          }
+       }
+
+       return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
    }
 }
