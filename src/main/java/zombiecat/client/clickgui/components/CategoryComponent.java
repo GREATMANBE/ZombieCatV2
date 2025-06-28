@@ -38,14 +38,12 @@ public class CategoryComponent {
         this.categoryOpened = false;
         this.inUse = false;
         this.chromaSpeed = 3;
-        int tY = this.bh + 3;
         this.marginX = 80.0;
         this.marginY = 4.5;
 
         for (Module mod : ZombieCat.moduleManager.getModulesInCategory(this.categoryName)) {
-            ModuleComponent b = new ModuleComponent(mod, this, tY);
+            ModuleComponent b = new ModuleComponent(mod, this, 0); // Y set in r3nd3r()
             this.modulesInCategory.add(b);
-            tY += 16;
         }
     }
 
@@ -55,16 +53,12 @@ public class CategoryComponent {
 
     public void setX(int n) {
         this.x = n;
-        if (ZombieCat.clientConfig != null) {
-            ZombieCat.clientConfig.saveConfig();
-        }
+        if (ZombieCat.clientConfig != null) ZombieCat.clientConfig.saveConfig();
     }
 
     public void setY(int y) {
         this.y = y;
-        if (ZombieCat.clientConfig != null) {
-            ZombieCat.clientConfig.saveConfig();
-        }
+        if (ZombieCat.clientConfig != null) ZombieCat.clientConfig.saveConfig();
     }
 
     public void mousePressed(boolean d) {
@@ -85,15 +79,12 @@ public class CategoryComponent {
 
     public void setOpened(boolean on) {
         this.categoryOpened = on;
-        if (ZombieCat.clientConfig != null) {
-            ZombieCat.clientConfig.saveConfig();
-        }
+        if (ZombieCat.clientConfig != null) ZombieCat.clientConfig.saveConfig();
     }
 
     public void rf(FontRenderer renderer) {
         this.width = 92;
 
-        // 🛠️ Fix: update subcomponent Y positions before drawing
         if (!this.modulesInCategory.isEmpty() && this.categoryOpened) {
             this.r3nd3r();
 
@@ -146,19 +137,19 @@ public class CategoryComponent {
 
             if (this.categoryOpened && !this.modulesInCategory.isEmpty()) {
                 for (Component c2 : this.modulesInCategory) {
-                    c2.draw();  // Draw module components after setting positions
+                    c2.draw();
                 }
             }
         }
     }
 
-    // 🔧 Position submodules vertically under the category header
+    // Update Y-offsets of each module component considering subcomponents
     public void r3nd3r() {
-        int o = this.bh + 3;
-
+        int yOffset = this.bh + 3;
         for (Component c : this.modulesInCategory) {
-            c.setComponentStartAt(o);
-            o += c.getHeight();
+            c.setComponentStartAt(yOffset);
+            c.update();
+            yOffset += c.getHeight();
         }
     }
 
