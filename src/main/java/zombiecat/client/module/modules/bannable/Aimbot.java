@@ -49,7 +49,9 @@ public class Aimbot extends Module {
       }
 
       double dis = 9999999;
-      Vec3 target= null;
+      Vec3 targetPos = null;
+      Entity targetEntity = null;
+
       if (Utils.Player.isPlayerInGame()) {
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
@@ -62,7 +64,6 @@ public class Aimbot extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
-               // Puppy logic: skip puppy wolves if pup toggle is off
                if (entity instanceof EntityWolf) {
                   EntityWolf wolf = (EntityWolf) entity;
                   if (!pup.getValue() && wolf.isChild()) {
@@ -72,103 +73,87 @@ public class Aimbot extends Module {
 
                Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
 
-               // Pumpkin head check
-               boolean hasPumpkinHead = false;
-               if (entity instanceof EntityLivingBase) {
-                  EntityLivingBase living = (EntityLivingBase) entity;
-                  if (living.getEquipmentInSlot(4) != null) {
-                     ItemStack helmet = living.getEquipmentInSlot(4);
-                     String helmetName = helmet.getItem().getUnlocalizedName();
-                     if (helmetName.contains("pumpkin") || helmetName.contains("jackolantern")) {
-                        hasPumpkinHead = true;
-                     }
-                  }
-               }
-
-               System.out.println(entity.getName() + " hasPumpkinHead: " + hasPumpkinHead);
-
+               // Base position without pumpkin offset
                Vec3 baseTargetPos = entity.getPositionEyes(1).add(offset);
-               if (hasPumpkinHead) {
-                  baseTargetPos = baseTargetPos.addVector(0, 0.3, 0); // Raise aim by 0.4 for pumpkin heads
-               }
 
                double distance = fovDistance(baseTargetPos);
                if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), baseTargetPos)) {
                   dis = distance;
-                  target = baseTargetPos;
+                  targetPos = baseTargetPos;
+                  targetEntity = entity;
                } else {
 
                   double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
 
                   Vec3 pos1 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
-                  if (hasPumpkinHead) pos1 = pos1.addVector(0, 0.3, 0);
                   distance = fovDistance(pos1);
                   if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos1)) {
                      dis = distance;
-                     target = pos1;
+                     targetPos = pos1;
+                     targetEntity = entity;
                   } else {
                      Vec3 pos2 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0));
-                     if (hasPumpkinHead) pos2 = pos2.addVector(0, 0.3, 0);
                      distance = fovDistance(pos2);
                      if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos2)) {
                         dis = distance;
-                        target = pos2;
+                        targetPos = pos2;
+                        targetEntity = entity;
                      } else {
                         Vec3 pos3 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0));
-                        if (hasPumpkinHead) pos3 = pos3.addVector(0, 0.3, 0);
                         distance = fovDistance(pos3);
                         if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos3)) {
                            dis = distance;
-                           target = pos3;
+                           targetPos = pos3;
+                           targetEntity = entity;
                         } else {
                            Vec3 pos4 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0));
-                           if (hasPumpkinHead) pos4 = pos4.addVector(0, 0.3, 0);
                            distance = fovDistance(pos4);
                            if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos4)) {
                               dis = distance;
-                              target = pos4;
+                              targetPos = pos4;
+                              targetEntity = entity;
                            } else {
                               Vec3 pos5 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0));
-                              if (hasPumpkinHead) pos5 = pos5.addVector(0, 0.3, 0);
                               distance = fovDistance(pos5);
                               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos5)) {
                                  dis = distance;
-                                 target = pos5;
+                                 targetPos = pos5;
+                                 targetEntity = entity;
                               } else {
                                  Vec3 pos6 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0));
-                                 if (hasPumpkinHead) pos6 = pos6.addVector(0, 0.3, 0);
                                  distance = fovDistance(pos6);
                                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos6)) {
                                     dis = distance;
-                                    target = pos6;
+                                    targetPos = pos6;
+                                    targetEntity = entity;
                                  } else {
                                     Vec3 pos7 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0));
-                                    if (hasPumpkinHead) pos7 = pos7.addVector(0, 0.3, 0);
                                     distance = fovDistance(pos7);
                                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos7)) {
                                        dis = distance;
-                                       target = pos7;
+                                       targetPos = pos7;
+                                       targetEntity = entity;
                                     } else {
                                        Vec3 pos8 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0));
-                                       if (hasPumpkinHead) pos8 = pos8.addVector(0, 0.3, 0);
                                        distance = fovDistance(pos8);
                                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos8)) {
                                           dis = distance;
-                                          target = pos8;
+                                          targetPos = pos8;
+                                          targetEntity = entity;
                                        } else {
                                           Vec3 pos9 = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0));
-                                          if (hasPumpkinHead) pos9 = pos9.addVector(0, 0.3, 0);
                                           distance = fovDistance(pos9);
                                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos9)) {
                                              dis = distance;
-                                             target = pos9;
+                                             targetPos = pos9;
+                                             targetEntity = entity;
                                           } else {
                                              Vec3 pos10 = entity.getPositionVector().add(offset);
-                                             if (hasPumpkinHead) pos10 = pos10.addVector(0, 0.3, 0);
                                              distance = fovDistance(pos10);
                                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos10)) {
                                                 dis = distance;
-                                                target = pos10;
+                                                targetPos = pos10;
+                                                targetEntity = entity;
                                              }
                                           }
                                        }
@@ -182,8 +167,27 @@ public class Aimbot extends Module {
                }
             }
          }
-         if (target != null) {
-            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), target);
+         
+         if (targetEntity != null && targetPos != null) {
+            boolean hasPumpkinHead = false;
+
+            // Check if targetEntity has pumpkin head
+            if (targetEntity instanceof EntityLivingBase) {
+               EntityLivingBase living = (EntityLivingBase) targetEntity;
+               ItemStack helmet = living.getEquipmentInSlot(4);
+               if (helmet != null) {
+                  String helmetName = helmet.getItem().getUnlocalizedName();
+                  if (helmetName.contains("pumpkin") || helmetName.contains("jackolantern")) {
+                     hasPumpkinHead = true;
+                  }
+               }
+            }
+
+            if (hasPumpkinHead) {
+               targetPos = targetPos.addVector(0, 0.2, 0);
+            }
+
+            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
             mc.thePlayer.rotationYaw = angle[0];
             mc.thePlayer.rotationPitch = angle[1];
          }
