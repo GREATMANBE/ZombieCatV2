@@ -1,4 +1,4 @@
-package zombiecat.client.clickgui.components;Add commentMore actions
+package zombiecat.client.clickgui.components;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -252,7 +252,7 @@ public class ModuleComponent implements Component {
    public boolean ii(int x, int y) {
       return x > this.category.getX()
          && x < this.category.getX() + this.category.getWidth()
-         && y > this.category.getY() + this.oAdd commentMore actions
+         && y > this.category.getY() + this.o
          && y < this.category.getY() + 16 + this.o;
    }
 }
