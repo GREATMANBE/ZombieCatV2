@@ -144,11 +144,11 @@ public class CategoryComponent {
     }
 
     // Update Y-offsets of each module component considering subcomponents
-    public void r3nd3r() {
+    public void r3nd3r(int mouseX, int mouseY) {
         int yOffset = this.bh + 3;
         for (Component c : this.modulesInCategory) {
             c.setComponentStartAt(yOffset);
-            c.update();
+            c.update(mouseX, mouseY);  // Pass mouse coordinates here
             yOffset += c.getHeight();
         }
     }
