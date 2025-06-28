@@ -1,5 +1,4 @@
-package zombiecat.client.module.modules.legit;Add commentMore actions
-
+package zombiecat.client.module.modules.legit;
 import zombiecat.client.module.Module;
 
 public class IgnoreEntity extends Module {
