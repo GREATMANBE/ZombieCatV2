@@ -85,6 +85,8 @@ public class Aimbot extends Module {
                   }
                }
 
+               System.out.println(entity.getName() + " hasPumpkinHead: " + hasPumpkinHead);
+
                Vec3 baseTargetPos = entity.getPositionEyes(1).add(offset);
                if (hasPumpkinHead) {
                   baseTargetPos = baseTargetPos.addVector(0, 0.3, 0); // Raise aim by 0.4 for pumpkin heads
