@@ -13,6 +13,7 @@ import zombiecat.client.module.setting.impl.ComboSetting;
 import zombiecat.client.module.setting.impl.DescriptionSetting;
 import zombiecat.client.module.setting.impl.DoubleSliderSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
+import zombiecat.client.module.setting.impl.StringSetting;
 
 public class ModuleComponent implements Component {
    private final int c1 = new Color(0, 85, 255).getRGB();
@@ -56,6 +57,10 @@ public class ModuleComponent implements Component {
             } else if (v instanceof ComboSetting) {
                ComboSetting n = (ComboSetting)v;
                ModeComponent s = new ModeComponent(n, this, y);
+               this.settings.add(s);
+               y += 12;
+            } else if (v instanceof StringSetting) {
+               Component s = v.createComponent(this);
                this.settings.add(s);
                y += 12;
             }
@@ -251,8 +256,8 @@ public class ModuleComponent implements Component {
 
    public boolean ii(int x, int y) {
       return x > this.category.getX()
-         && x < this.category.getX() + this.category.getWidth()
-         && y > this.category.getY() + this.o
-         && y < this.category.getY() + 16 + this.o;
+          && x < this.category.getX() + this.category.getWidth()
+          && y > this.category.getY() + this.o
+          && y < this.category.getY() + 15 + this.o;
    }
 }
