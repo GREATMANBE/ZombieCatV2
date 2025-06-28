@@ -12,6 +12,7 @@ import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
@@ -22,8 +23,6 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.init.Items;
-
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
@@ -166,7 +165,7 @@ public class Aimbot extends Module {
             if (targetEntity instanceof EntityLivingBase) {
                EntityLivingBase living = (EntityLivingBase) targetEntity;
                ItemStack helmet = living.getEquipmentInSlot(4); // slot 4 is helmet
-               if (helmet != null && helmet.getItem() == net.minecraft.init.Items.pumpkin) {
+               if (helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)) {
                   target = target.addVector(0, 0.2, 0);
                }
             }
@@ -227,7 +226,7 @@ public class Aimbot extends Module {
    }
 
    public static float[] calculateYawPitch(Vec3 start, Vec3 vec) {
-       double diffX = vec.xCoord - start.xCoord;
+      double diffX = vec.xCoord - start.xCoord;
       double diffY = vec.yCoord - start.yCoord;
       double diffZ = vec.zCoord - start.zCoord;
       double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
