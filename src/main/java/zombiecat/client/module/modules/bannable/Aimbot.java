@@ -6,11 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntitySkeleton;
-import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -30,6 +26,7 @@ public class Aimbot extends Module {
    public static BooleanSetting pup;
    public static BooleanSetting skelePriority;
    public static BooleanSetting mobPriority;
+   public static BooleanSetting instaHS;
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -42,6 +39,7 @@ public class Aimbot extends Module {
       this.registerSetting(pup = new BooleanSetting("Pup", false));
       this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
       this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
+      this.registerSetting(instaHS = new BooleanSetting("InstaHS", true));
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -124,8 +122,13 @@ public class Aimbot extends Module {
          }
 
          if (targetEntity != null && targetPos != null) {
+            // Insta Kill HeadShot override logic
+            boolean avoidHeadshot = instaHS.getValue() && isInstaKillActive();
+
             if (skelePriority.getValue() && targetHasPumpkin) {
-               targetPos = targetPos.addVector(0, 0.2, 0);
+               if (!avoidHeadshot) {
+                  targetPos = targetPos.addVector(0, 0.2, 0);
+               }
             }
 
             float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
@@ -133,6 +136,12 @@ public class Aimbot extends Module {
             mc.thePlayer.rotationPitch = angle[1];
          }
       }
+   }
+
+   private boolean isInstaKillActive() {
+      if (mc.ingameGUI == null || mc.ingameGUI.getBossOverlay() == null) return false;
+      return mc.ingameGUI.getBossOverlay().mapBossInfos.keySet().stream()
+              .anyMatch(boss -> boss.getUnformattedText().toLowerCase().contains("insta kill"));
    }
 
    public static double fovDistance(Vec3 vec3) {
