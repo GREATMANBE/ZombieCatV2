@@ -2,8 +2,10 @@ package zombiecat.client.clickgui.components;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.ZombieCat;
 import zombiecat.client.clickgui.Component;
@@ -85,8 +87,12 @@ public class CategoryComponent {
     public void rf(FontRenderer renderer) {
         this.width = 92;
 
+        // Get real mouse coordinates with Y flipped for GUI space
+        int mouseX = Mouse.getX();
+        int mouseY = Minecraft.getMinecraft().displayHeight - Mouse.getY() - 1;
+
         if (!this.modulesInCategory.isEmpty() && this.categoryOpened) {
-            this.r3nd3r();
+            this.r3nd3r(mouseX, mouseY);
 
             int categoryHeight = 0;
             for (Component moduleRenderManager : this.modulesInCategory) {
@@ -143,12 +149,12 @@ public class CategoryComponent {
         }
     }
 
-    // Update Y-offsets of each module component considering subcomponents
+    // Update Y-offsets and call update with mouse coords
     public void r3nd3r(int mouseX, int mouseY) {
         int yOffset = this.bh + 3;
         for (Component c : this.modulesInCategory) {
             c.setComponentStartAt(yOffset);
-            c.update(mouseX, mouseY);  // Pass mouse coordinates here
+            c.update(mouseX, mouseY);
             yOffset += c.getHeight();
         }
     }
