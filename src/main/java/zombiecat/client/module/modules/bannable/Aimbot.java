@@ -126,9 +126,18 @@ public class Aimbot extends Module {
             boolean avoidHeadshot = instaHS.getValue() && isInstaKillActive();
 
             if (skelePriority.getValue() && targetHasPumpkin) {
-               if (!avoidHeadshot) {
-                  targetPos = targetPos.addVector(0, 0.2, 0);
-               }
+                if (avoidHeadshot) {
+                    // Try to aim lower than head (body area)
+                    Vec3 lowerTargetPos = targetPos.addVector(0, -0.3, 0); // aim 0.3 blocks below head
+
+                    // Check if we can shoot the body (no wall in between)
+                    if (canWallShot(mc.thePlayer.getPositionEyes(1), lowerTargetPos)) {
+                        targetPos = lowerTargetPos;
+                    }
+                    // else fallback to head (targetPos stays as is)
+                } else {
+                    targetPos = targetPos.addVector(0, 0.2, 0); // aim slightly above for skeleton priority (headshot)
+                }
             }
 
             float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), targetPos);
