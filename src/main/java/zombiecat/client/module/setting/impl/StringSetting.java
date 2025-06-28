@@ -52,8 +52,10 @@ public class StringSetting extends Setting {
 
     @Override
     public Component createComponent(ModuleComponent parent) {
-        return new Component(parent, this) {
+        return new Component() {
+            private final net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
             private int currentIndex = getIndex();
+            private int x, y, width = 100, height = 12;
     
             private int getIndex() {
                 for (int i = 0; i < options.length; i++) {
@@ -63,25 +65,49 @@ public class StringSetting extends Setting {
             }
     
             @Override
-            public void drawComponent(int mouseX, int mouseY) {
-                // Basic drawing: label and current value
+            public void draw() {
                 mc.fontRendererObj.drawStringWithShadow(
-                    getName() + ": " + value, 
-                    x + 2, y + 2, 
+                    getName() + ": " + value,
+                    x + 2, y + 2,
                     0xFFFFFF
                 );
             }
     
             @Override
-            public void mouseClicked(int mouseX, int mouseY, int button) {
+            public void update(int mouseX, int mouseY) {
+                // Optional for hover logic
+            }
+    
+            @Override
+            public void mouseDown(int mouseX, int mouseY, int button) {
                 if (isHovered(mouseX, mouseY) && button == 0) {
                     currentIndex = (currentIndex + 1) % options.length;
                     setValue(options[currentIndex]);
                 }
             }
     
+            @Override
+            public void mouseReleased(int mouseX, int mouseY, int button) {
+                // Not used
+            }
+    
+            @Override
+            public void keyTyped(char typedChar, int keyCode) {
+                // Not used
+            }
+    
+            @Override
+            public void setComponentStartAt(int yStart) {
+                this.y = yStart;
+            }
+    
+            @Override
+            public int getHeight() {
+                return height;
+            }
+    
             private boolean isHovered(int mouseX, int mouseY) {
-                return mouseX > x && mouseX < x + width && mouseY > y && mouseY < y + height;
+                return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
             }
         };
     }
