@@ -20,9 +20,8 @@ import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 
-import net.minecraft.client.gui.GuiBossOverlay;
-
 import java.lang.reflect.Field;
+import java.util.Map;
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
@@ -142,22 +141,34 @@ public class Aimbot extends Module {
       }
    }
 
-   private GuiBossOverlay getBossOverlay() {
+   private boolean isInstaKillActive() {
+      if (mc.ingameGUI == null) return false;
+
       try {
-         Field bossOverlayField = mc.ingameGUI.getClass().getDeclaredField("overlayBoss");
-         bossOverlayField.setAccessible(true);
-         return (GuiBossOverlay) bossOverlayField.get(mc.ingameGUI);
+         Field mapBossInfosField = mc.ingameGUI.getClass().getDeclaredField("mapBossInfos");
+         mapBossInfosField.setAccessible(true);
+         Map<?, Integer> mapBossInfos = (Map<?, Integer>) mapBossInfosField.get(mc.ingameGUI);
+
+         for (Object bossInfo : mapBossInfos.keySet()) {
+            Field nameField = bossInfo.getClass().getDeclaredField("name");
+            nameField.setAccessible(true);
+            Object chatComponent = nameField.get(bossInfo);
+
+            String bossName;
+            try {
+               bossName = (String) chatComponent.getClass().getMethod("getUnformattedText").invoke(chatComponent);
+            } catch (Exception e) {
+               bossName = chatComponent.toString();
+            }
+
+            if (bossName.toLowerCase().contains("insta kill")) {
+               return true;
+            }
+         }
       } catch (Exception e) {
          e.printStackTrace();
-         return null;
       }
-   }
-
-   private boolean isInstaKillActive() {
-      GuiBossOverlay bossOverlay = getBossOverlay();
-      if (bossOverlay == null) return false;
-      return bossOverlay.mapBossInfos.keySet().stream()
-              .anyMatch(boss -> boss.getUnformattedText().toLowerCase().contains("insta kill"));
+      return false;
    }
 
    public static double fovDistance(Vec3 vec3) {
