@@ -148,9 +148,9 @@ public class Aimbot extends Module {
    }
 
    private boolean isInstaKillActive() {
-      if (mc.ingameGUI == null || mc.ingameGUI.getBossOverlay() == null) return false;
-      return mc.ingameGUI.getBossOverlay().mapBossInfos.keySet().stream()
-              .anyMatch(boss -> boss.getUnformattedText().toLowerCase().contains("insta kill"));
+       if (mc.ingameGUI == null || mc.ingameGUI.overlayBoss == null) return false;
+       return mc.ingameGUI.overlayBoss.mapBossInfos.keySet().stream()
+               .anyMatch(boss -> boss.toLowerCase().contains("insta kill"));
    }
 
    public static double fovDistance(Vec3 vec3) {
