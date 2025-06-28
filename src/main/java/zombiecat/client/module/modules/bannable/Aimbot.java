@@ -94,11 +94,13 @@ public class Aimbot extends Module {
                               targetPumpkin = entity.getPositionEyes(1).add(offset);
                               targetPumpkinEntity = entity;
                            }
-                           continue; // *** ADDED: skip adding to normal target list
+                           // skip adding to normal target list because pumpkin priority active
+                           continue;
                         }
                      }
                   }
 
+                  // Continue with normal target selection if not pumpkin or skelePriority off
                   if (distance < dis) {
                      dis = distance;
                      target = entity.getPositionEyes(1).add(offset);
@@ -107,7 +109,7 @@ public class Aimbot extends Module {
                } else {
                   double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                   distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
-                  canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
+                  canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
                   if (distance < dis && canWall) {
                      if (skelePriority.getValue()) {
                         if (entity instanceof EntityLivingBase) {
@@ -119,7 +121,7 @@ public class Aimbot extends Module {
                                  targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
                                  targetPumpkinEntity = entity;
                               }
-                              continue; // *** ADDED: skip normal target update
+                              continue;
                            }
                         }
                      }
@@ -132,7 +134,7 @@ public class Aimbot extends Module {
                      // Repeat for other Y offsets: 0.2, 0.3, ..., 0.9 and finally 0.0 (no offset)
                      for (double yMult = 0.2; yMult <= 0.9; yMult += 0.1) {
                         distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0)));
-                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0)));
+                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
                         if (distance < dis && canWall) {
                            if (skelePriority.getValue()) {
                               if (entity instanceof EntityLivingBase) {
@@ -144,7 +146,7 @@ public class Aimbot extends Module {
                                        targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
                                        targetPumpkinEntity = entity;
                                     }
-                                    break; // *** ADDED: break and skip normal target update for pumpkin
+                                    break;
                                  }
                               }
                            }
@@ -172,7 +174,7 @@ public class Aimbot extends Module {
                                        targetPumpkin = entity.getPositionVector().add(offset);
                                        targetPumpkinEntity = entity;
                                     }
-                                    continue; // *** ADDED: skip normal target update for pumpkin
+                                    continue;
                                  }
                               }
                            }
@@ -188,11 +190,13 @@ public class Aimbot extends Module {
             }
          }
 
-         // Final target selection:
-         // If skelePriority enabled and a pumpkin target exists, use it.
-         if (skelePriority.getValue() && targetPumpkin != null) {
-            target = targetPumpkin;
-            targetEntity = targetPumpkinEntity;
+         // ** NEW ADDITION: Enforce pumpkin target priority **
+         if (skelePriority.getValue()) {
+             if (targetPumpkinEntity != null) {
+                 // Override target to pumpkin target forcibly
+                 target = targetPumpkin;
+                 targetEntity = targetPumpkinEntity;
+             }
          }
 
          if (target != null) {
