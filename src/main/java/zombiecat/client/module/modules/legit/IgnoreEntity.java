@@ -1,48 +1,40 @@
 package zombiecat.client.module.modules.legit;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.IMob;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.IMob;
 
 public class IgnoreEntity extends Module {
-   public static boolean isOn = false;
-   public BooleanSetting ignoreMobs;
+    public static BooleanSetting ignoreMobs;
+    public static boolean isOn = false;
+    public static IgnoreEntity INSTANCE;
 
-   public IgnoreEntity() {
-      super("IgnoreEntity", Module.ModuleCategory.legit);
-      this.registerSetting(ignoreMobs = new BooleanSetting("Ignore Mobs", false)); // default: ignore mobs = false (so mobs NOT ignored)
-   }
+    public IgnoreEntity() {
+        super("IgnoreEntity", ModuleCategory.legit);
+        this.registerSetting(ignoreMobs = new BooleanSetting("Ignore Mobs", false));
+        INSTANCE = this;
+    }
 
-   @Override
-   public void onEnable() {
-      isOn = true;
-   }
+    @Override
+    public void onEnable() {
+        isOn = true;
+    }
 
-   @Override
-   public void onDisable() {
-      isOn = false;
-   }
+    @Override
+    public void onDisable() {
+        isOn = false;
+    }
 
-   /**
-    * Call this method to check if an entity should be ignored by the module.
-    * 
-    * @param entity The entity to check.
-    * @return true if entity should be ignored, false if it should NOT be ignored.
-    */
-   public boolean shouldIgnore(Entity entity) {
-      if (!isOn) return false; // module off, don't ignore anything
+    public static boolean shouldIgnore(Entity entity) {
+        if (!isOn) return false;
 
-      if (ignoreMobs.getValue()) {
-         // Ignore mobs and all other entities
-         return true;
-      } else {
-         // Ignore everything except mobs (entities implementing IMob)
-         if (entity instanceof IMob) {
-            return false; // don't ignore mobs
-         }
-         return true; // ignore everything else
-      }
-   }
+        if (ignoreMobs.getValue()) {
+            // Ignore all entities
+            return true;
+        } else {
+            // Ignore all entities except hostile mobs
+            return !(entity instanceof IMob);
+        }
+    }
 }
