@@ -160,11 +160,26 @@ public class Aimbot extends Module {
                 }
             }
 
-            if (target != null) {
-                if (targetEntity instanceof EntityLivingBase && isPumpkinHead(targetEntity)) {
-                    target = target.addVector(0, 0.2, 0);
-                }
+            if (targetEntity instanceof EntityLivingBase) {
+                Vec3 headPos = targetEntity.getPositionEyes(1);
+                Vec3 torsoPos = targetEntity.getPositionVector().addVector(0, targetEntity.getEyeHeight() * 0.5, 0);
+                Vec3 feetPos = targetEntity.getPositionVector();
 
+                // Try head first
+                if (canWallShot(mc.thePlayer.getPositionEyes(1), headPos)) {
+                    target = headPos;
+                }
+                // If head blocked, try torso
+                else if (canWallShot(mc.thePlayer.getPositionEyes(1), torsoPos)) {
+                    target = torsoPos;
+                }
+                // If torso blocked, try feet
+                else {
+                    target = feetPos;
+                }
+            }
+
+            if (target != null) {
                 float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), target);
                 mc.thePlayer.rotationYaw = angle[0];
                 mc.thePlayer.rotationPitch = angle[1];
