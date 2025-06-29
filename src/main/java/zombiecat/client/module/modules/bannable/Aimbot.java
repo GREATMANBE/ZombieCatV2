@@ -32,6 +32,9 @@ public class Aimbot extends Module {
     public static SliderSetting predict;
     public static SliderSetting yPredict;
 
+    // Added slider for vertical aim offset
+    public static SliderSetting aimHeightOffset;
+
     public Aimbot() {
         super("Aimbot", ModuleCategory.bannable);
         this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
@@ -42,6 +45,7 @@ public class Aimbot extends Module {
         this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false)); // <-- Registered here
         this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
         this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
+        this.registerSetting(aimHeightOffset = new SliderSetting("AimHeightOffset", 0.0, -1.0, 2.0, 0.05)); // Added slider
     }
 
     private boolean isPumpkinHead(Entity entity) {
@@ -134,25 +138,33 @@ public class Aimbot extends Module {
                     }
 
                     Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
-                    double distance = fovDistance(entity.getPositionEyes(1).add(offset));
-                    boolean canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset));
+
+                    // Apply vertical aim offset here:
+                    Vec3 basePos = entity.getPositionVector().add(offset);
+                    double verticalOffset = aimHeightOffset.getValue();
+
+                    Vec3 aimingPos = basePos.addVector(0, verticalOffset, 0);
+
+                    double distance = fovDistance(aimingPos);
+                    boolean canWall = canWallShot(mc.thePlayer.getPositionEyes(1), aimingPos);
 
                     if (distance < dis && canWall) {
                         dis = distance;
-                        target = entity.getPositionEyes(1).add(offset);
+                        target = aimingPos;
                         targetEntity = entity;
                         continue;
                     }
 
+                    // Original fallback aiming with vertical multipliers (keep it unchanged)
                     double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                     for (double yMult = 0.2; yMult <= 0.9; yMult += 0.1) {
-                        Vec3 aiming = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
-                        distance = fovDistance(aiming);
-                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), aiming);
+                        Vec3 fallbackAim = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
+                        distance = fovDistance(fallbackAim);
+                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), fallbackAim);
 
                         if (distance < dis && canWall) {
                             dis = distance;
-                            target = aiming;
+                            target = fallbackAim;
                             targetEntity = entity;
                             break;
                         }
