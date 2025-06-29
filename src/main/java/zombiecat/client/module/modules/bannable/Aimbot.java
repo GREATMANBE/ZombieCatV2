@@ -27,8 +27,8 @@ import zombiecat.client.utils.Utils;
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
-   public static BooleanSetting pup; // Added pup toggle
-   public static BooleanSetting skelePriority; // New toggle for pumpkin head priority
+   public static BooleanSetting pup;
+   public static BooleanSetting skelePriority;
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -38,8 +38,8 @@ public class Aimbot extends Module {
       this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
-      this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
-      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false)); // default off
+      this.registerSetting(pup = new BooleanSetting("Pup", false));
+      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -77,7 +77,6 @@ public class Aimbot extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
-               // Puppy logic: skip puppy wolves if pup toggle is off
                if (entity instanceof EntityWolf) {
                   EntityWolf wolf = (EntityWolf) entity;
                   if (!pup.getValue() && wolf.isChild()) {
@@ -90,17 +89,15 @@ public class Aimbot extends Module {
                boolean canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset));
 
                if (distance < dis && canWall) {
-                  // Pumpkin priority logic: if enabled, store pumpkin targets separately and skip them from normal targeting
                   if (skelePriority.getValue() && isPumpkinHead(entity)) {
                      if (distance < disPumpkin) {
                         disPumpkin = distance;
                         targetPumpkin = entity.getPositionEyes(1).add(offset);
                         targetPumpkinEntity = entity;
                      }
-                     continue; // skip normal targeting for pumpkin if priority is on
+                     continue;
                   }
 
-                  // Normal target selection if not pumpkin or priority off
                   if (distance < dis) {
                      dis = distance;
                      target = entity.getPositionEyes(1).add(offset);
@@ -170,14 +167,15 @@ public class Aimbot extends Module {
             }
          }
 
-         // Override target with pumpkin target if priority enabled and pumpkin found
-         if (skelePriority.getValue() && targetPumpkinEntity != null) {
-            target = targetPumpkin;
-            targetEntity = targetPumpkinEntity;
+         // ✅ FIXED PRIORITY LOGIC
+         if (skelePriority.getValue()) {
+            if (targetPumpkinEntity != null) {
+               target = targetPumpkin;
+               targetEntity = targetPumpkinEntity;
+            } // else keep regular target
          }
 
          if (target != null) {
-            // Adjust target Y by +0.2 if pumpkin head (for aiming a bit higher)
             if (targetEntity instanceof EntityLivingBase && isPumpkinHead(targetEntity)) {
                target = target.addVector(0, 0.2, 0);
             }
