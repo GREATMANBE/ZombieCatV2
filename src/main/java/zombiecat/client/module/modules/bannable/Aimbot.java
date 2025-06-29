@@ -27,6 +27,7 @@ public class Aimbot extends Module {
     public static BooleanSetting wsStair;
     public static BooleanSetting pup;
     public static BooleanSetting skelePriority;
+    public static BooleanSetting mobPriority; // <-- Added this new setting
     public static SliderSetting a;
     public static SliderSetting predict;
     public static SliderSetting yPredict;
@@ -38,6 +39,7 @@ public class Aimbot extends Module {
         this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
         this.registerSetting(pup = new BooleanSetting("Pup", false));
         this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
+        this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false)); // <-- Registered here
         this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
         this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
     }
@@ -74,6 +76,7 @@ public class Aimbot extends Module {
         Entity targetEntity = null;
 
         boolean anyPriorityFound = false;
+        boolean anyNonPriorityFound = false; // <-- Added this
 
         if (Utils.Player.isPlayerInGame()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
@@ -97,6 +100,9 @@ public class Aimbot extends Module {
                     boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
                     if (skelePriority.getValue() && isPriority) {
                         anyPriorityFound = true;
+                    }
+                    if (mobPriority.getValue() && !isPriority) {
+                        anyNonPriorityFound = true; // <-- Track normal mobs if mobPriority enabled
                     }
                 }
             }
@@ -122,6 +128,9 @@ public class Aimbot extends Module {
                     boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
                     if (skelePriority.getValue() && anyPriorityFound && !isPriority) {
                         continue; // Skip non-priority mobs if priority ones exist
+                    }
+                    if (mobPriority.getValue() && anyNonPriorityFound && isPriority) {
+                        continue; // <-- Skip priority mobs if non-priority mobs exist
                     }
 
                     Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
