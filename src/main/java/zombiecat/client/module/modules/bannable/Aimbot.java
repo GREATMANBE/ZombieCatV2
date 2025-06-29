@@ -45,7 +45,7 @@ public class Aimbot extends Module {
         this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false)); // <-- Registered here
         this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
         this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
-        this.registerSetting(aimHeightOffset = new SliderSetting("AimHeightOffset", 0.0, -1.0, 2.0, 0.05)); // Added slider
+        this.registerSetting(aimHeightOffset = new SliderSetting("AimHeightOffset", 0.0, -1.0, 3.0, 0.01)); // Added slider
     }
 
     private boolean isPumpkinHead(Entity entity) {
