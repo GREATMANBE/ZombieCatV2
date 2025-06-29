@@ -6,14 +6,11 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntitySkeleton;
-import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
@@ -24,13 +21,12 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.item.Item;
 
 public class Aimbot extends Module {
     public static BooleanSetting onlyFire;
     public static BooleanSetting wsStair;
-    public static BooleanSetting pup; // Added pup toggle
-    public static BooleanSetting skelePriority; // New toggle for pumpkin & iron armored skeleton priority
+    public static BooleanSetting pup;
+    public static BooleanSetting skelePriority;
     public static SliderSetting a;
     public static SliderSetting predict;
     public static SliderSetting yPredict;
@@ -40,8 +36,8 @@ public class Aimbot extends Module {
         this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
         this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
         this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
-        this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
-        this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false)); // default off
+        this.registerSetting(pup = new BooleanSetting("Pup", false));
+        this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
         this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
         this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
     }
@@ -53,22 +49,18 @@ public class Aimbot extends Module {
         return helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin);
     }
 
-    private boolean isIronArmoredSkeleton(Entity entity) {
+    private boolean isArmoredSkele(Entity entity) {
         if (!(entity instanceof EntitySkeleton)) return false;
-        EntityLivingBase living = (EntityLivingBase) entity;
+        EntitySkeleton skele = (EntitySkeleton) entity;
+        ItemStack boots = skele.getEquipmentInSlot(1);
+        ItemStack leggings = skele.getEquipmentInSlot(2);
+        ItemStack chest = skele.getEquipmentInSlot(3);
+        ItemStack held = skele.getHeldItem();
 
-        ItemStack boots = living.getEquipmentInSlot(1);
-        ItemStack leggings = living.getEquipmentInSlot(2);
-        ItemStack chestplate = living.getEquipmentInSlot(3);
-        ItemStack heldItem = living.getHeldItem();
-
-        boolean hasIronArmor = boots != null && boots.getItem() == Items.iron_boots &&
-                               leggings != null && leggings.getItem() == Items.iron_leggings &&
-                               chestplate != null && chestplate.getItem() == Items.iron_chestplate;
-
-        boolean holdingStoneSword = heldItem != null && heldItem.getItem() == Items.stone_sword;
-
-        return hasIronArmor && holdingStoneSword;
+        return boots != null && boots.getItem() == Items.iron_boots
+                && leggings != null && leggings.getItem() == Items.iron_leggings
+                && chest != null && chest.getItem() == Items.iron_chestplate
+                && held != null && held.getItem() == Items.stone_sword;
     }
 
     @SubscribeEvent
@@ -81,9 +73,7 @@ public class Aimbot extends Module {
         Vec3 target = null;
         Entity targetEntity = null;
 
-        double disPumpkin = 9999999;
-        Vec3 targetPumpkin = null;
-        Entity targetPumpkinEntity = null;
+        boolean anyPriorityFound = false;
 
         if (Utils.Player.isPlayerInGame()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
@@ -97,7 +87,6 @@ public class Aimbot extends Module {
                         && !(entity instanceof EntityCow)
                         && entity.isEntityAlive()) {
 
-                    // Puppy logic: skip puppy wolves if pup toggle is off
                     if (entity instanceof EntityWolf) {
                         EntityWolf wolf = (EntityWolf) entity;
                         if (!pup.getValue() && wolf.isChild()) {
@@ -105,99 +94,64 @@ public class Aimbot extends Module {
                         }
                     }
 
+                    boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
+                    if (skelePriority.getValue() && isPriority) {
+                        anyPriorityFound = true;
+                    }
+                }
+            }
+
+            for (Entity entity : mc.theWorld.loadedEntityList) {
+                if (entity instanceof EntityLivingBase
+                        && !(entity instanceof EntityArmorStand)
+                        && !(entity instanceof EntityWither)
+                        && !(entity instanceof EntityVillager)
+                        && !(entity instanceof EntityPlayer)
+                        && !(entity instanceof EntityChicken)
+                        && !(entity instanceof EntityPig)
+                        && !(entity instanceof EntityCow)
+                        && entity.isEntityAlive()) {
+
+                    if (entity instanceof EntityWolf) {
+                        EntityWolf wolf = (EntityWolf) entity;
+                        if (!pup.getValue() && wolf.isChild()) {
+                            continue;
+                        }
+                    }
+
+                    boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
+                    if (skelePriority.getValue() && anyPriorityFound && !isPriority) {
+                        continue; // Skip non-priority mobs if priority ones exist
+                    }
+
                     Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
                     double distance = fovDistance(entity.getPositionEyes(1).add(offset));
                     boolean canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset));
 
                     if (distance < dis && canWall) {
-                        // Pumpkin and iron armored skeleton priority logic:
-                        if (skelePriority.getValue() && (isPumpkinHead(entity) || isIronArmoredSkeleton(entity))) {
-                            if (distance < disPumpkin) {
-                                disPumpkin = distance;
-                                targetPumpkin = entity.getPositionEyes(1).add(offset);
-                                targetPumpkinEntity = entity;
-                            }
-                            continue; // skip normal targeting for priority mobs
-                        }
+                        dis = distance;
+                        target = entity.getPositionEyes(1).add(offset);
+                        targetEntity = entity;
+                        continue;
+                    }
 
-                        // Normal target selection if not priority mob
-                        if (distance < dis) {
-                            dis = distance;
-                            target = entity.getPositionEyes(1).add(offset);
-                            targetEntity = entity;
-                        }
-                    } else {
-                        double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
-                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
+                    double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                    for (double yMult = 0.2; yMult <= 0.9; yMult += 0.1) {
+                        Vec3 aiming = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
+                        distance = fovDistance(aiming);
+                        canWall = canWallShot(mc.thePlayer.getPositionEyes(1), aiming);
+
                         if (distance < dis && canWall) {
-                            if (skelePriority.getValue() && (isPumpkinHead(entity) || isIronArmoredSkeleton(entity))) {
-                                if (distance < disPumpkin) {
-                                    disPumpkin = distance;
-                                    targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
-                                    targetPumpkinEntity = entity;
-                                }
-                                continue;
-                            }
-                            if (distance < dis) {
-                                dis = distance;
-                                target = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0));
-                                targetEntity = entity;
-                            }
-                        } else {
-                            for (double yMult = 0.2; yMult <= 0.9; yMult += 0.1) {
-                                distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0)));
-                                canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
-                                if (distance < dis && canWall) {
-                                    if (skelePriority.getValue() && (isPumpkinHead(entity) || isIronArmoredSkeleton(entity))) {
-                                        if (distance < disPumpkin) {
-                                            disPumpkin = distance;
-                                            targetPumpkin = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
-                                            targetPumpkinEntity = entity;
-                                        }
-                                        break;
-                                    }
-                                    if (distance < dis) {
-                                        dis = distance;
-                                        target = entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * yMult, 0));
-                                        targetEntity = entity;
-                                    }
-                                    break;
-                                }
-                            }
-
-                            if (!skelePriority.getValue() || targetPumpkinEntity == null) {
-                                distance = fovDistance(entity.getPositionVector().add(offset));
-                                canWall = canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset));
-                                if (distance < dis && canWall) {
-                                    if (skelePriority.getValue() && (isPumpkinHead(entity) || isIronArmoredSkeleton(entity))) {
-                                        if (distance < disPumpkin) {
-                                            disPumpkin = distance;
-                                            targetPumpkin = entity.getPositionVector().add(offset);
-                                            targetPumpkinEntity = entity;
-                                        }
-                                        continue;
-                                    }
-                                    if (distance < dis) {
-                                        dis = distance;
-                                        target = entity.getPositionVector().add(offset);
-                                        targetEntity = entity;
-                                    }
-                                }
-                            }
+                            dis = distance;
+                            target = aiming;
+                            targetEntity = entity;
+                            break;
                         }
                     }
                 }
             }
 
-            // Override target with pumpkin or iron armored skeleton target if priority enabled and found
-            if (skelePriority.getValue() && targetPumpkinEntity != null) {
-                target = targetPumpkin;
-                targetEntity = targetPumpkinEntity;
-            }
-
             if (target != null) {
-                // Adjust target Y by +0.2 if pumpkin head (for aiming a bit higher)
                 if (targetEntity instanceof EntityLivingBase && isPumpkinHead(targetEntity)) {
                     target = target.addVector(0, 0.2, 0);
                 }
@@ -231,12 +185,8 @@ public class Aimbot extends Module {
         Vec3 now = start;
         while (now.distanceTo(end) > a.getValue() + 0.1) {
             Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
-            if (block == Blocks.sandstone_stairs) {
-                return false;
-            }
-            if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
-                return false;
-            }
+            if (block == Blocks.sandstone_stairs) return false;
+            if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) return false;
             if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs && block != Blocks.spruce_stairs || block == Blocks.iron_door || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
                 return true;
             }
