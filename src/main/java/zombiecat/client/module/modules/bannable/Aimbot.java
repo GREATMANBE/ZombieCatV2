@@ -27,7 +27,7 @@ public class Aimbot extends Module {
     public static BooleanSetting wsStair;
     public static BooleanSetting pup;
     public static BooleanSetting skelePriority;
-    public static BooleanSetting mobPriority; // <-- Added this new setting
+    public static BooleanSetting mobPriority;
     public static SliderSetting a;
     public static SliderSetting predict;
     public static SliderSetting yPredict;
@@ -39,7 +39,7 @@ public class Aimbot extends Module {
         this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
         this.registerSetting(pup = new BooleanSetting("Pup", false));
         this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
-        this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false)); // <-- Registered here
+        this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
         this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
         this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
     }
@@ -76,7 +76,7 @@ public class Aimbot extends Module {
         Entity targetEntity = null;
 
         boolean anyPriorityFound = false;
-        boolean anyNonPriorityFound = false; // <-- Added this
+        boolean anyNonPriorityFound = false;
 
         if (Utils.Player.isPlayerInGame()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
@@ -102,7 +102,7 @@ public class Aimbot extends Module {
                         anyPriorityFound = true;
                     }
                     if (mobPriority.getValue() && !isPriority) {
-                        anyNonPriorityFound = true; // <-- Track normal mobs if mobPriority enabled
+                        anyNonPriorityFound = true;
                     }
                 }
             }
@@ -127,10 +127,10 @@ public class Aimbot extends Module {
 
                     boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
                     if (skelePriority.getValue() && anyPriorityFound && !isPriority) {
-                        continue; // Skip non-priority mobs if priority ones exist
+                        continue;
                     }
                     if (mobPriority.getValue() && anyNonPriorityFound && isPriority) {
-                        continue; // <-- Skip priority mobs if non-priority mobs exist
+                        continue;
                     }
 
                     Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
@@ -165,16 +165,11 @@ public class Aimbot extends Module {
                 Vec3 torsoPos = targetEntity.getPositionVector().addVector(0, targetEntity.getEyeHeight() * 0.5, 0);
                 Vec3 feetPos = targetEntity.getPositionVector();
 
-                // Try head first
                 if (canWallShot(mc.thePlayer.getPositionEyes(1), headPos)) {
                     target = headPos;
-                }
-                // If head blocked, try torso
-                else if (canWallShot(mc.thePlayer.getPositionEyes(1), torsoPos)) {
+                } else if (canWallShot(mc.thePlayer.getPositionEyes(1), torsoPos)) {
                     target = torsoPos;
-                }
-                // If torso blocked, try feet
-                else {
+                } else {
                     target = feetPos;
                 }
             }
@@ -245,21 +240,11 @@ public class Aimbot extends Module {
         double dX = entity.posX - entity.prevPosX;
         double dY = entity.posY - entity.prevPosY;
         double dZ = entity.posZ - entity.prevPosZ;
-        double entityMotionPosX = 0;
-        double entityMotionPosY = 0;
-        double entityMotionPosZ = 0;
-        for (double i = 1; i <= ticks; i = i + 0.3) {
-            for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
-                if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
-                    entityMotionPosX = dX * i;
-                    entityMotionPosY = dY * i2;
-                    entityMotionPosZ = dZ * i;
-                } else {
-                    break;
-                }
-            }
-        }
 
-        return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
+        double motionX = dX * ticks;
+        double motionY = dY * yTicks;
+        double motionZ = dZ * ticks;
+
+        return new Vec3(motionX, motionY, motionZ);
     }
 }
