@@ -98,34 +98,6 @@ public class Aimbot extends Module {
                     }
 
                     boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
-                    if (skelePriority.getValue() && isPriority) {
-                        anyPriorityFound = true;
-                    }
-                    if (mobPriority.getValue() && !isPriority) {
-                        anyNonPriorityFound = true;
-                    }
-                }
-            }
-
-            for (Entity entity : mc.theWorld.loadedEntityList) {
-                if (entity instanceof EntityLivingBase
-                        && !(entity instanceof EntityArmorStand)
-                        && !(entity instanceof EntityWither)
-                        && !(entity instanceof EntityVillager)
-                        && !(entity instanceof EntityPlayer)
-                        && !(entity instanceof EntityChicken)
-                        && !(entity instanceof EntityPig)
-                        && !(entity instanceof EntityCow)
-                        && entity.isEntityAlive()) {
-
-                    if (entity instanceof EntityWolf) {
-                        EntityWolf wolf = (EntityWolf) entity;
-                        if (!pup.getValue() && wolf.isChild()) {
-                            continue;
-                        }
-                    }
-
-                    boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
                     if (skelePriority.getValue() && anyPriorityFound && !isPriority) {
                         continue;
                     }
@@ -196,27 +168,31 @@ public class Aimbot extends Module {
         return MathHelper.wrapAngleTo180_double(end - start);
     }
 
-    public static boolean canWallShot(Vec3 start, Vec3 end) {
-        float[] angle = calculateYawPitch(start, end);
+   public static boolean canWallShot(Vec3 start, Vec3 end) {
+      float[] angle = calculateYawPitch(start, end);
 
-        Vec3 temp = fromPolar(angle[1], angle[0]);
-        Vec3 forward = new Vec3(temp.xCoord * a.getValue(), temp.yCoord * a.getValue(), temp.zCoord * a.getValue());
-        Vec3 now = start;
-        while (now.distanceTo(end) > a.getValue() + 0.1) {
-            Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
-            if (block == Blocks.sandstone_stairs) return false;
-            if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) return false;
-            if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs && block != Blocks.spruce_stairs || block == Blocks.iron_door || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
-                return true;
-            }
-            if (block != Blocks.air && block != Blocks.grass && block != Blocks.tallgrass) {
-                return false;
-            }
-            now = now.add(forward);
-        }
-        Block endBlock = mc.theWorld.getBlockState(new BlockPos(end)).getBlock();
-        return endBlock == Blocks.air || endBlock == Blocks.iron_bars || endBlock instanceof BlockSlab || endBlock instanceof BlockSign || endBlock instanceof BlockBarrier;
-    }
+      Vec3 temp = fromPolar(angle[1], angle[0]);
+      Vec3 forward = new Vec3(temp.xCoord * a.getValue(), temp.yCoord * a.getValue(), temp.zCoord * a.getValue());
+      Vec3 now = start;
+      while (now.distanceTo(end) > a.getValue() + 0.1) {
+         Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
+         if (block == Blocks.sandstone_stairs) {
+            return false;
+         }
+         if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
+            return false;
+         }
+         if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs && block != Blocks.spruce_stairs || block == Blocks.iron_door || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
+            return true;
+         }
+         if (block != Blocks.air && block != Blocks.grass && block != Blocks.tallgrass) {
+            return false;
+         }
+         now = now.add(forward);
+      }
+      Block endBlock = mc.theWorld.getBlockState(new BlockPos(end)).getBlock();
+      return endBlock == Blocks.air || endBlock == Blocks.iron_bars || endBlock instanceof BlockSlab || endBlock instanceof BlockSign || endBlock instanceof BlockBarrier;
+   }
 
     public static Vec3 fromPolar(float pitch, float yaw) {
         float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
