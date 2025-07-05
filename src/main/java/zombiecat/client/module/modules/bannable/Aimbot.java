@@ -29,7 +29,8 @@ public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
    public static BooleanSetting pup;
-   public static BooleanSetting skelePriority; // 🔹 New setting
+   public static BooleanSetting skelePriority;
+   public static BooleanSetting mobPriority; // 🔹 New setting
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -40,7 +41,8 @@ public class Aimbot extends Module {
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
       this.registerSetting(pup = new BooleanSetting("Pup", false));
-      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false)); // 🔹 Register setting
+      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
+      this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false)); // 🔹 Register setting
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -52,41 +54,35 @@ public class Aimbot extends Module {
       }
 
       double dis = 9999999;
-      Vec3 target= null;
+      Vec3 target = null;
       if (Utils.Player.isPlayerInGame()) {
-         List<Entity> validTargets = new ArrayList<>();
+         List<Entity> skeletonTargets = new ArrayList<>();
+         List<Entity> regularTargets = new ArrayList<>();
 
-         // 🔹 Skeleton priority filtering
-         if (skelePriority.getValue()) {
-            for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
-                  EntitySkeleton skel = (EntitySkeleton) entity;
-                  ItemStack helmet = skel.getEquipmentInSlot(4);
-                  ItemStack hand = skel.getHeldItem();
-                  ItemStack chest = skel.getEquipmentInSlot(3);
-                  ItemStack legs = skel.getEquipmentInSlot(2);
-                  ItemStack boots = skel.getEquipmentInSlot(1);
+         // 🔹 Priority classification logic
+         for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
+               EntitySkeleton skel = (EntitySkeleton) entity;
+               ItemStack helmet = skel.getEquipmentInSlot(4);
+               ItemStack hand = skel.getHeldItem();
+               ItemStack chest = skel.getEquipmentInSlot(3);
+               ItemStack legs = skel.getEquipmentInSlot(2);
+               ItemStack boots = skel.getEquipmentInSlot(1);
 
-                  boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
-                          && hand != null && hand.getItem() == Items.stone_sword;
+               boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
+                       && hand != null && hand.getItem() == Items.stone_sword;
 
-                  boolean isIronArmorSword =
-                          hand != null && hand.getItem() == Items.stone_sword &&
-                          chest != null && chest.getItem() == Items.iron_chestplate &&
-                          legs != null && legs.getItem() == Items.iron_leggings &&
-                          boots != null && boots.getItem() == Items.iron_boots;
+               boolean isIronArmorSword =
+                       hand != null && hand.getItem() == Items.stone_sword &&
+                       chest != null && chest.getItem() == Items.iron_chestplate &&
+                       legs != null && legs.getItem() == Items.iron_leggings &&
+                       boots != null && boots.getItem() == Items.iron_boots;
 
-                  if (isPumpkinSword || isIronArmorSword) {
-                     validTargets.add(entity);
-                  }
+               if (isPumpkinSword || isIronArmorSword) {
+                  skeletonTargets.add(entity);
+                  continue;
                }
             }
-         }
-
-         boolean prioritizeSkele = !validTargets.isEmpty();
-
-         for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (prioritizeSkele && !validTargets.contains(entity)) continue;
 
             if (entity instanceof EntityLivingBase
                     && !(entity instanceof EntityArmorStand)
@@ -97,7 +93,22 @@ public class Aimbot extends Module {
                     && !(entity instanceof EntityPig)
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
+               regularTargets.add(entity);
+            }
+         }
 
+         boolean prioritizeSkeletons = false;
+
+         if (mobPriority.getValue()) {
+            prioritizeSkeletons = regularTargets.isEmpty(); // 🔹 Only target special skeletons if everything else is dead
+         } else if (skelePriority.getValue()) {
+            prioritizeSkeletons = true;
+         }
+
+         List<Entity> validTargets = prioritizeSkeletons ? skeletonTargets : regularTargets;
+
+         for (Entity entity : validTargets) {
+            if (entity instanceof EntityLivingBase) {
                if (entity instanceof EntityWolf) {
                   EntityWolf wolf = (EntityWolf) entity;
                   if (!pup.getValue() && wolf.isChild()) {
@@ -182,13 +193,17 @@ public class Aimbot extends Module {
                }
             }
          }
+
          if (target != null) {
-            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), target);
+            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), target);
             mc.thePlayer.rotationYaw = angle[0];
             mc.thePlayer.rotationPitch = angle[1];
          }
       }
    }
+
+   // (Remaining helper methods below are unchanged)
+
 
    public static double fovDistance(Vec3 vec3) {
       float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), vec3);
