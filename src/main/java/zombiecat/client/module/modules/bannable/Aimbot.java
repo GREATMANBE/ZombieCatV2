@@ -240,11 +240,22 @@ public class Aimbot extends Module {
         double dX = entity.posX - entity.prevPosX;
         double dY = entity.posY - entity.prevPosY;
         double dZ = entity.posZ - entity.prevPosZ;
+        double entityMotionPosX = 0;
+        double entityMotionPosY = 0;
+        double entityMotionPosZ = 0;
 
-        double motionX = dX * ticks;
-        double motionY = dY * yTicks;
-        double motionZ = dZ * ticks;
+        for (double i = 1; i <= ticks; i = i + 0.3) {
+            for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
+                if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
+                    entityMotionPosX = dX * i;
+                    entityMotionPosY = dY * i2;
+                    entityMotionPosZ = dZ * i;
+                } else {
+                    break;
+                }
+            }
+        }
 
-        return new Vec3(motionX, motionY, motionZ);
+        return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
     }
 }
