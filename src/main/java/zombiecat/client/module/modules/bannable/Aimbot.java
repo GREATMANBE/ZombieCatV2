@@ -21,6 +21,8 @@ import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import net.minecraft.item.Item;
+import net.minecraft.client.network.NetworkPlayerInfo;
+
 
 import java.util.ArrayList;
 import java.util.List;
