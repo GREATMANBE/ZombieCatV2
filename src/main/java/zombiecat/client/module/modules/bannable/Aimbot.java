@@ -11,7 +11,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Item;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -21,6 +20,7 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
+import net.minecraft.item.Item;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,53 +43,191 @@ public class Aimbot extends Module {
       this.registerSetting(pup = new BooleanSetting("Pup", false));
       this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
       this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
-      this.registerSetting(predict = new SliderSetting("Predict", 1, 0, 2, 0.1));
-      this.registerSetting(yPredict = new SliderSetting("YPredict", 1, 0, 2, 0.1));
+      this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
+      this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
 
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
-      if (onlyFire.getValue() && !mc.gameSettings.keyBindUseItem.isKeyDown()) return;
+      if (onlyFire.getValue() && !mc.gameSettings.keyBindUseItem.isKeyDown()) {
+         return;
+      }
 
       double dis = 9999999;
       Vec3 target = null;
       if (Utils.Player.isPlayerInGame()) {
          List<Entity> validTargets = new ArrayList<>();
+
          boolean prioritizeSkeletons = false;
 
          if (mobPriority.getValue()) {
+            // Collect all non-skeleton valid targets
             for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (isValidNonSkeleton(entity)) validTargets.add(entity);
+               if (entity instanceof EntityLivingBase
+                       && !(entity instanceof EntityArmorStand)
+                       && !(entity instanceof EntityWither)
+                       && !(entity instanceof EntityVillager)
+                       && !(entity instanceof EntityPlayer)
+                       && !(entity instanceof EntityChicken)
+                       && !(entity instanceof EntityPig)
+                       && !(entity instanceof EntityCow)
+                       && !(entity instanceof EntitySkeleton)
+                       && entity.isEntityAlive()) {
+                  validTargets.add(entity);
+               }
             }
 
+            // If no non-skeleton mobs found, collect special skeletons
             if (validTargets.isEmpty()) {
                for (Entity entity : mc.theWorld.loadedEntityList) {
-                  if (isSpecialSkeleton(entity)) validTargets.add(entity);
+                  if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
+                     EntitySkeleton skel = (EntitySkeleton) entity;
+                     ItemStack helmet = skel.getEquipmentInSlot(4);
+                     ItemStack hand = skel.getHeldItem();
+                     ItemStack chest = skel.getEquipmentInSlot(3);
+                     ItemStack legs = skel.getEquipmentInSlot(2);
+                     ItemStack boots = skel.getEquipmentInSlot(1);
+
+                     boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
+                             && hand != null && hand.getItem() == Items.stone_sword;
+
+                     boolean isIronArmorSword =
+                             hand != null && hand.getItem() == Items.stone_sword &&
+                                     chest != null && chest.getItem() == Items.iron_chestplate &&
+                                     legs != null && legs.getItem() == Items.iron_leggings &&
+                                     boots != null && boots.getItem() == Items.iron_boots;
+
+                     if (isPumpkinSword || isIronArmorSword) {
+                        validTargets.add(entity);
+                     }
+                  }
                }
             }
 
             prioritizeSkeletons = true;
          } else if (skelePriority.getValue()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (isSpecialSkeleton(entity)) validTargets.add(entity);
+               if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
+                  EntitySkeleton skel = (EntitySkeleton) entity;
+                  ItemStack helmet = skel.getEquipmentInSlot(4);
+                  ItemStack hand = skel.getHeldItem();
+                  ItemStack chest = skel.getEquipmentInSlot(3);
+                  ItemStack legs = skel.getEquipmentInSlot(2);
+                  ItemStack boots = skel.getEquipmentInSlot(1);
+
+                  boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
+                          && hand != null && hand.getItem() == Items.stone_sword;
+
+                  boolean isIronArmorSword =
+                          hand != null && hand.getItem() == Items.stone_sword &&
+                          chest != null && chest.getItem() == Items.iron_chestplate &&
+                          legs != null && legs.getItem() == Items.iron_leggings &&
+                          boots != null && boots.getItem() == Items.iron_boots;
+
+                  if (isPumpkinSword || isIronArmorSword) {
+                     validTargets.add(entity);
+                  }
+               }
             }
+
             prioritizeSkeletons = true;
          }
 
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (prioritizeSkeletons && !validTargets.contains(entity)) continue;
 
-            if (entity instanceof EntityLivingBase && isValidTarget(entity)) {
-               if (entity instanceof EntityWolf && !pup.getValue() && ((EntityWolf) entity).isChild()) continue;
+            if (entity instanceof EntityLivingBase
+                    && !(entity instanceof EntityArmorStand)
+                    && !(entity instanceof EntityWither)
+                    && !(entity instanceof EntityVillager)
+                    && !(entity instanceof EntityPlayer)
+                    && !(entity instanceof EntityChicken)
+                    && !(entity instanceof EntityPig)
+                    && !(entity instanceof EntityCow)
+                    && entity.isEntityAlive()) {
 
-               Vec3 offset = getMotionVec(entity);
+               if (entity instanceof EntityWolf) {
+                  EntityWolf wolf = (EntityWolf) entity;
+                  if (!pup.getValue() && wolf.isChild()) {
+                     continue;
+                  }
+               }
+
+               float predictTicks = (float) predict.getValue() * getPingInTicks();
+               float yPredictTicks = (float) yPredict.getValue() * getPingInTicks();              
+               Vec3 offset = getMotionVec(entity, predictTicks, yPredictTicks);
                double distance = fovDistance(entity.getPositionEyes(1).add(offset));
-               Vec3[] possibleTargets = getYOffsetVariants(entity.getPositionVector().add(offset), entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord);
-               for (Vec3 pos : possibleTargets) {
-                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), pos)) {
+               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
+                  dis = distance;
+                  target = entity.getPositionEyes(1).add(offset);
+               } else {
+                  double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                  distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
+                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                      dis = distance;
-                     target = pos;
-                     break;
+                     target = entity.getPositionVector().add(offset);
+                  } else {
+                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
+                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                        dis = distance;
+                        target = entity.getPositionVector().add(offset);
+                     } else {
+                        yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
+                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                           dis = distance;
+                           target = entity.getPositionVector().add(offset);
+                        } else {
+                           yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
+                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                              dis = distance;
+                              target = entity.getPositionVector().add(offset);
+                           } else {
+                              yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                              distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
+                              if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                 dis = distance;
+                                 target = entity.getPositionVector().add(offset);
+                              } else {
+                                 yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                 distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
+                                 if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                    dis = distance;
+                                    target = entity.getPositionVector().add(offset);
+                                 } else {
+                                    yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                    distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
+                                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                       dis = distance;
+                                       target = entity.getPositionVector().add(offset);
+                                    } else {
+                                       yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                       distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
+                                       if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                          dis = distance;
+                                          target = entity.getPositionVector().add(offset);
+                                       } else {
+                                          yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                          distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
+                                          if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                             dis = distance;
+                                             target = entity.getPositionVector().add(offset);
+                                          } else {
+                                             distance = fovDistance(entity.getPositionVector().add(offset));
+                                             if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                                dis = distance;
+                                                target = entity.getPositionVector().add(offset);
+                                             }
+                                          }
+                                       }
+                                    }
+                                 }
+                              }
+                           }
+                        }
+                     }
                   }
                }
             }
@@ -103,70 +241,10 @@ public class Aimbot extends Module {
       }
    }
 
-   private boolean isValidNonSkeleton(Entity entity) {
-      return entity instanceof EntityLivingBase
-              && !(entity instanceof EntityArmorStand)
-              && !(entity instanceof EntityWither)
-              && !(entity instanceof EntityVillager)
-              && !(entity instanceof EntityPlayer)
-              && !(entity instanceof EntityChicken)
-              && !(entity instanceof EntityPig)
-              && !(entity instanceof EntityCow)
-              && !(entity instanceof EntitySkeleton)
-              && entity.isEntityAlive();
-   }
-
-   private boolean isValidTarget(Entity entity) {
-      return !(entity instanceof EntityArmorStand)
-              && !(entity instanceof EntityWither)
-              && !(entity instanceof EntityVillager)
-              && !(entity instanceof EntityPlayer)
-              && !(entity instanceof EntityChicken)
-              && !(entity instanceof EntityPig)
-              && !(entity instanceof EntityCow)
-              && entity.isEntityAlive();
-   }
-
-   private boolean isSpecialSkeleton(Entity entity) {
-      if (!(entity instanceof EntitySkeleton) || !entity.isEntityAlive()) return false;
-
-      EntitySkeleton skel = (EntitySkeleton) entity;
-      ItemStack helmet = skel.getEquipmentInSlot(4);
-      ItemStack hand = skel.getHeldItem();
-      ItemStack chest = skel.getEquipmentInSlot(3);
-      ItemStack legs = skel.getEquipmentInSlot(2);
-      ItemStack boots = skel.getEquipmentInSlot(1);
-
-      boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
-              && hand != null && hand.getItem() == Items.stone_sword;
-
-      boolean isIronArmorSword = hand != null && hand.getItem() == Items.stone_sword &&
-              chest != null && chest.getItem() == Items.iron_chestplate &&
-              legs != null && legs.getItem() == Items.iron_leggings &&
-              boots != null && boots.getItem() == Items.iron_boots;
-
-      return isPumpkinSword || isIronArmorSword;
-   }
-
-   public static Vec3[] getYOffsetVariants(Vec3 base, double eyeOffset) {
-      return new Vec3[]{
-              base.addVector(0, 0, 0),
-              base.addVector(0, -eyeOffset * 0.1, 0),
-              base.addVector(0, -eyeOffset * 0.2, 0),
-              base.addVector(0, -eyeOffset * 0.3, 0),
-              base.addVector(0, -eyeOffset * 0.4, 0),
-              base.addVector(0, -eyeOffset * 0.5, 0),
-              base.addVector(0, -eyeOffset * 0.6, 0),
-              base.addVector(0, -eyeOffset * 0.7, 0),
-              base.addVector(0, -eyeOffset * 0.8, 0),
-              base.addVector(0, -eyeOffset * 0.9, 0)
-      };
-   }
-
    public static double fovDistance(Vec3 vec3) {
-      float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0, mc.thePlayer.getEyeHeight(), 0), vec3);
-      return angleBetween(angle[0], mc.thePlayer.rotationYaw)
-              + Math.abs(angle[1] - mc.thePlayer.rotationPitch);
+      float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), vec3);
+      return angleBetween(angle[0], mc.thePlayer.rotationYaw) +
+              Math.abs(Math.max(angle[1], mc.thePlayer.rotationPitch) - Math.min(angle[1], mc.thePlayer.rotationPitch));
    }
 
    public static double angleBetween(double first, double second) {
@@ -179,62 +257,78 @@ public class Aimbot extends Module {
 
    public static boolean canWallShot(Vec3 start, Vec3 end) {
       float[] angle = calculateYawPitch(start, end);
-      Vec3 forward = fromPolar(angle[1], angle[0]).scale(a.getValue());
-      Vec3 now = start;
 
+      Vec3 temp = fromPolar(angle[1], angle[0]);
+      Vec3 forward = new Vec3(temp.xCoord * a.getValue(), temp.yCoord * a.getValue(), temp.zCoord * a.getValue());
+      Vec3 now = start;
       while (now.distanceTo(end) > a.getValue() + 0.1) {
          Block block = mc.theWorld.getBlockState(new BlockPos(now)).getBlock();
-         if (block == Blocks.sandstone_stairs) return false;
-         if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) return false;
+         if (block == Blocks.sandstone_stairs) {
+            return false;
+         }
+         if (block instanceof BlockSlab && ((BlockSlab) block).isDouble()) {
+            return false;
+         }
          if (block instanceof BlockSlab || wsStair.getValue() && block instanceof BlockStairs && block != Blocks.spruce_stairs || block == Blocks.iron_door || block == Blocks.iron_bars || block instanceof BlockSign || block instanceof BlockBarrier) {
             return true;
          }
-         if (block != Blocks.air && block != Blocks.grass && block != Blocks.tallgrass) return false;
+         if (block != Blocks.air && block != Blocks.grass && block != Blocks.tallgrass) {
+            return false;
+         }
          now = now.add(forward);
       }
-
       Block endBlock = mc.theWorld.getBlockState(new BlockPos(end)).getBlock();
       return endBlock == Blocks.air || endBlock == Blocks.iron_bars || endBlock instanceof BlockSlab || endBlock instanceof BlockSign || endBlock instanceof BlockBarrier;
    }
 
    public static Vec3 fromPolar(float pitch, float yaw) {
-      float f = MathHelper.cos(-yaw * 0.017453292F - (float)Math.PI);
-      float g = MathHelper.sin(-yaw * 0.017453292F - (float)Math.PI);
+      float f = MathHelper.cos(-yaw * 0.017453292F - 3.1415927F);
+      float g = MathHelper.sin(-yaw * 0.017453292F - 3.1415927F);
       float h = -MathHelper.cos(-pitch * 0.017453292F);
       float i = MathHelper.sin(-pitch * 0.017453292F);
       return new Vec3(g * h, i, f * h);
    }
 
    public static float[] calculateYawPitch(Vec3 start, Vec3 vec) {
-      double dx = vec.xCoord - start.xCoord;
-      double dy = vec.yCoord - start.yCoord;
-      double dz = vec.zCoord - start.zCoord;
-      double distXZ = Math.sqrt(dx * dx + dz * dz);
-      float yaw = (float)Math.toDegrees(Math.atan2(dz, dx)) - 90.0f;
-      float pitch = (float)(-Math.toDegrees(Math.atan2(dy, distXZ)));
+      double diffX = vec.xCoord - start.xCoord;
+      double diffY = vec.yCoord - start.yCoord;
+      double diffZ = vec.zCoord - start.zCoord;
+      double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+      float yaw = (float) Math.toDegrees(Math.atan2(diffZ, diffX)) - 90.0f;
+      float pitch = (float) (-Math.toDegrees(Math.atan2(diffY, diffXZ)));
       return new float[]{MathHelper.wrapAngleTo180_float(yaw), MathHelper.wrapAngleTo180_float(pitch)};
    }
 
-   public static Vec3 getMotionVec(Entity entity) {
-      double dx = entity.posX - entity.prevPosX;
-      double dy = entity.posY - entity.prevPosY;
-      double dz = entity.posZ - entity.prevPosZ;
-
-      int pingTicks = getPingTicks(entity);
-      float scaleX = (float) pingTicks * predict.getValue();
-      float scaleY = (float) pingTicks * yPredict.getValue();
-
-      return new Vec3(dx * scaleX, dy * scaleY, dz * scaleX);
+   public static int getPingInTicks() {
+       if (mc.getCurrentServerData() != null && mc.thePlayer != null) {
+           NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
+           if (info != null) {
+               return info.getResponseTime() / 50; // 1 tick = 50ms
+           }
+       }
+       return 0;
    }
 
-   private static int getPingTicks(Entity entity) {
-      if (entity instanceof EntityPlayer) {
-         try {
-            return mc.getNetHandler().getPlayerInfo(((EntityPlayer) entity).getUniqueID()).getResponseTime() / 50;
-         } catch (Exception e) {
-            return 0;
+
+   public static Vec3 getMotionVec(Entity entity, float ticks, float yTicks) {
+      double dX = entity.posX - entity.prevPosX;
+      double dY = entity.posY - entity.prevPosY;
+      double dZ = entity.posZ - entity.prevPosZ;
+      double entityMotionPosX = 0;
+      double entityMotionPosY = 0;
+      double entityMotionPosZ = 0;
+      for (double i = 1; i <= ticks; i = i + 0.3) {
+         for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
+            if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
+               entityMotionPosX = dX * i;
+               entityMotionPosY = dY * i2;
+               entityMotionPosZ = dZ * i;
+            } else {
+               break;
+            }
          }
       }
-      return 0;
+
+      return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
    }
 }
