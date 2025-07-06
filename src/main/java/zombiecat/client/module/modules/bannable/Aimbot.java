@@ -21,8 +21,6 @@ import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import net.minecraft.item.Item;
-import net.minecraft.client.network.NetworkPlayerInfo;
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,9 +153,7 @@ public class Aimbot extends Module {
                   }
                }
 
-               float predictTicks = (float) predict.getValue() * getPingInTicks();
-               float yPredictTicks = (float) yPredict.getValue() * getPingInTicks();              
-               Vec3 offset = getMotionVec(entity, predictTicks, yPredictTicks);
+               Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
                double distance = fovDistance(entity.getPositionEyes(1).add(offset));
                if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
                   dis = distance;
@@ -300,17 +296,6 @@ public class Aimbot extends Module {
       float pitch = (float) (-Math.toDegrees(Math.atan2(diffY, diffXZ)));
       return new float[]{MathHelper.wrapAngleTo180_float(yaw), MathHelper.wrapAngleTo180_float(pitch)};
    }
-
-   public static int getPingInTicks() {
-       if (mc.getCurrentServerData() != null && mc.thePlayer != null) {
-           NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
-           if (info != null) {
-               return info.getResponseTime() / 50; // 1 tick = 50ms
-           }
-       }
-       return 0;
-   }
-
 
    public static Vec3 getMotionVec(Entity entity, float ticks, float yTicks) {
       double dX = entity.posX - entity.prevPosX;
