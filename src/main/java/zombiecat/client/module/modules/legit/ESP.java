@@ -50,6 +50,38 @@ public class ESP extends Module {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
+               } else if (entity instanceof EntityZombie) {
+                  EntityLivingBase living = (EntityLivingBase) entity;
+                  ItemStack chest = living.getEquipmentInSlot(3);
+                  ItemStack legs = living.getEquipmentInSlot(2);
+                  ItemStack boots = living.getEquipmentInSlot(1);
+
+                  boolean chestBlack = chest != null
+                          && chest.getItem() == Items.leather_chestplate
+                          && chest.hasTagCompound()
+                          && chest.getTagCompound().hasKey("display")
+                          && chest.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+                  boolean legsBlack = legs != null
+                          && legs.getItem() == Items.leather_leggings
+                          && legs.hasTagCompound()
+                          && legs.getTagCompound().hasKey("display")
+                          && legs.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+                  boolean bootsBlack = boots != null
+                          && boots.getItem() == Items.leather_boots
+                          && boots.hasTagCompound()
+                          && boots.getTagCompound().hasKey("display")
+                          && boots.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+                  if (chestBlack && legsBlack && bootsBlack) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, color);
+                  }
                } else {
                   Utils.HUD.drawBoxAroundEntity(entity, true, color);
                }
@@ -114,6 +146,31 @@ public class ESP extends Module {
                boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
 
                if (chestLime && legsLime && bootsLime && holdingNothing) {
+                  drawTraces(entity, new Color(255, 0, 0, 150));
+               }
+
+               boolean chestBlack = chest != null
+                       && chest.getItem() == Items.leather_chestplate
+                       && chest.hasTagCompound()
+                       && chest.getTagCompound().hasKey("display")
+                       && chest.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               boolean legsBlack = legs != null
+                       && legs.getItem() == Items.leather_leggings
+                       && legs.hasTagCompound()
+                       && legs.getTagCompound().hasKey("display")
+                       && legs.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               boolean bootsBlack = boots != null
+                       && boots.getItem() == Items.leather_boots
+                       && boots.hasTagCompound()
+                       && boots.getTagCompound().hasKey("display")
+                       && boots.getTagCompound().getCompoundTag("display").hasKey("color")
+                       && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               if (chestBlack && legsBlack && bootsBlack) {
                   drawTraces(entity, new Color(255, 0, 0, 150));
                }
             }
