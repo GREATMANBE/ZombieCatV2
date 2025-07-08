@@ -247,7 +247,7 @@ public class Aimbot extends Module {
             mc.thePlayer.rotationPitch = angle[1];
          }
       }
-   }
+   
 
    public static double fovDistance(Vec3 vec3) {
       float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), vec3);
