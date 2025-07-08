@@ -1,4 +1,3 @@
-
 package zombiecat.client.module.modules.bannable;
 
 import net.minecraft.block.*;
@@ -6,12 +5,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.monster.EntitySkeleton;
-import net.minecraft.entity.passive.*;
+import net.minecraft.entity.passive.EntityWolf;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.passive.EntityChicken;
+import net.minecraft.entity.passive.EntityPig;
+import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -21,17 +21,12 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.item.Item;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
-   public static BooleanSetting pup;
-   public static BooleanSetting skelePriority;
-   public static BooleanSetting mobPriority;
+   public static BooleanSetting pup; // Added pup toggle
+   public static BooleanSetting skelepriority; // Added skelepriority toggle
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -41,9 +36,8 @@ public class Aimbot extends Module {
       this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
-      this.registerSetting(pup = new BooleanSetting("Pup", false));
-      this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
-      this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
+      this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
+      this.registerSetting(skelepriority = new BooleanSetting("SkelePriority", false)); // default off
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -57,12 +51,47 @@ public class Aimbot extends Module {
       double dis = 9999999;
       Vec3 target = null;
       if (Utils.Player.isPlayerInGame()) {
-         List<Entity> validTargets = new ArrayList<>();
 
-         boolean prioritizeSkeletons = false;
+         boolean foundSkelePriorityTarget = false;
+         Vec3 skeleTarget = null;
+         double skeleDis = 9999999;
 
-         if (mobPriority.getValue()) {
-            // Collect all non-skeleton valid targets
+         // First pass: if skelepriority enabled, find eligible skeleton targets
+         if (skelepriority.getValue()) {
+            for (Entity entity : mc.theWorld.loadedEntityList) {
+               if (entity instanceof net.minecraft.entity.monster.EntitySkeleton && entity.isEntityAlive()) {
+                  net.minecraft.entity.monster.EntitySkeleton skeleton = (net.minecraft.entity.monster.EntitySkeleton) entity;
+
+                  boolean wearingPumpkin = skeleton.getEquipmentInSlot(4) != null
+                          && skeleton.getEquipmentInSlot(4).getItem() == net.minecraft.init.Items.pumpkin;
+
+                  boolean holdingStoneSword = skeleton.getHeldItem() != null
+                          && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
+
+                  boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null // chestplate slot
+                          && skeleton.getEquipmentInSlot(1).getItem() == net.minecraft.init.Items.iron_chestplate
+                          && skeleton.getEquipmentInSlot(2) != null // leggings slot
+                          && skeleton.getEquipmentInSlot(2).getItem() == net.minecraft.init.Items.iron_leggings
+                          && skeleton.getEquipmentInSlot(3) != null // boots slot
+                          && skeleton.getEquipmentInSlot(3).getItem() == net.minecraft.init.Items.iron_boots;
+
+                  if ((wearingPumpkin && holdingStoneSword) || wearingIronArmor) {
+                     Vec3 offset = getMotionVec(skeleton, (float) predict.getValue(), (float) yPredict.getValue());
+                     double distance = fovDistance(skeleton.getPositionEyes(1).add(offset));
+                     if (distance < skeleDis && canWallShot(mc.thePlayer.getPositionEyes(1), skeleton.getPositionEyes(1).add(offset))) {
+                        skeleDis = distance;
+                        skeleTarget = skeleton.getPositionEyes(1).add(offset);
+                        foundSkelePriorityTarget = true;
+                     }
+                  }
+               }
+            }
+         }
+
+         if (foundSkelePriorityTarget) {
+            target = skeleTarget;
+         } else {
+            // Normal targeting logic (same as before)
             for (Entity entity : mc.theWorld.loadedEntityList) {
                if (entity instanceof EntityLivingBase
                        && !(entity instanceof EntityArmorStand)
@@ -72,151 +101,83 @@ public class Aimbot extends Module {
                        && !(entity instanceof EntityChicken)
                        && !(entity instanceof EntityPig)
                        && !(entity instanceof EntityCow)
-                       && !(entity instanceof EntitySkeleton)
                        && entity.isEntityAlive()) {
-                  validTargets.add(entity);
-               }
-            }
 
-            // If no non-skeleton mobs found, collect special skeletons
-            if (validTargets.isEmpty()) {
-               for (Entity entity : mc.theWorld.loadedEntityList) {
-                  if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
-                     EntitySkeleton skel = (EntitySkeleton) entity;
-                     ItemStack helmet = skel.getEquipmentInSlot(4);
-                     ItemStack hand = skel.getHeldItem();
-                     ItemStack chest = skel.getEquipmentInSlot(3);
-                     ItemStack legs = skel.getEquipmentInSlot(2);
-                     ItemStack boots = skel.getEquipmentInSlot(1);
-
-                     boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
-                             && hand != null && hand.getItem() == Items.stone_sword;
-
-                     boolean isIronArmorSword =
-                             hand != null && hand.getItem() == Items.stone_sword &&
-                                     chest != null && chest.getItem() == Items.iron_chestplate &&
-                                     legs != null && legs.getItem() == Items.iron_leggings &&
-                                     boots != null && boots.getItem() == Items.iron_boots;
-
-                     if (isPumpkinSword || isIronArmorSword) {
-                        validTargets.add(entity);
+                  // Puppy logic: skip puppy wolves if pup toggle is off
+                  if (entity instanceof EntityWolf) {
+                     EntityWolf wolf = (EntityWolf) entity;
+                     if (!pup.getValue() && wolf.isChild()) {
+                        continue;
                      }
                   }
-               }
-            }
 
-            prioritizeSkeletons = !validTargets.isEmpty();
-         } else if (skelePriority.getValue()) {
-            for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
-                  EntitySkeleton skel = (EntitySkeleton) entity;
-                  ItemStack helmet = skel.getEquipmentInSlot(4);
-                  ItemStack hand = skel.getHeldItem();
-                  ItemStack chest = skel.getEquipmentInSlot(3);
-                  ItemStack legs = skel.getEquipmentInSlot(2);
-                  ItemStack boots = skel.getEquipmentInSlot(1);
-
-                  boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
-                          && hand != null && hand.getItem() == Items.stone_sword;
-
-                  boolean isIronArmorSword =
-                          hand != null && hand.getItem() == Items.stone_sword &&
-                          chest != null && chest.getItem() == Items.iron_chestplate &&
-                          legs != null && legs.getItem() == Items.iron_leggings &&
-                          boots != null && boots.getItem() == Items.iron_boots;
-
-                  if (isPumpkinSword || isIronArmorSword) {
-                     validTargets.add(entity);
-                  }
-               }
-            }
-
-            if (!validTargets.isEmpty()) {
-               prioritizeSkeletons = true;
-            } else {
-               prioritizeSkeletons = false;
-            }
-         }
-
-         for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (prioritizeSkeletons && !validTargets.contains(entity)) continue;
-
-            if (entity instanceof EntityLivingBase
-                    && !(entity instanceof EntityArmorStand)
-                    && !(entity instanceof EntityWither)
-                    && !(entity instanceof EntityVillager)
-                    && !(entity instanceof EntityPlayer)
-                    && !(entity instanceof EntityChicken)
-                    && !(entity instanceof EntityPig)
-                    && !(entity instanceof EntityCow)
-                    && entity.isEntityAlive()) {
-
-               if (entity instanceof EntityWolf) {
-                  EntityWolf wolf = (EntityWolf) entity;
-                  if (!pup.getValue() && wolf.isChild()) {
-                     continue;
-                  }
-               }
-
-               Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
-               double distance = fovDistance(entity.getPositionEyes(1).add(offset));
-               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
-                  dis = distance;
-                  target = entity.getPositionEyes(1).add(offset);
-               } else {
-                  double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                  distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
-                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                  Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
+                  double distance = fovDistance(entity.getPositionEyes(1).add(offset));
+                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
                      dis = distance;
-                     target = entity.getPositionVector().add(offset);
+                     target = entity.getPositionEyes(1).add(offset);
                   } else {
-                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
+
+                     double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                     distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
                      if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                         dis = distance;
                         target = entity.getPositionVector().add(offset);
                      } else {
                         yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
+                        distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.2, 0)));
                         if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                            dis = distance;
                            target = entity.getPositionVector().add(offset);
                         } else {
                            yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
+                           distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.3, 0)));
                            if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                               dis = distance;
                               target = entity.getPositionVector().add(offset);
                            } else {
                               yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                              distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
+                              distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.4, 0)));
                               if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                  dis = distance;
                                  target = entity.getPositionVector().add(offset);
                               } else {
                                  yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                 distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
+                                 distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.5, 0)));
                                  if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                     dis = distance;
                                     target = entity.getPositionVector().add(offset);
                                  } else {
                                     yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                    distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
+                                    distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.6, 0)));
                                     if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                        dis = distance;
                                        target = entity.getPositionVector().add(offset);
                                     } else {
                                        yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                       distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
+                                       distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.7, 0)));
                                        if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                           dis = distance;
                                           target = entity.getPositionVector().add(offset);
                                        } else {
                                           yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
-                                          distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
+                                          distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.8, 0)));
                                           if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
                                              dis = distance;
                                              target = entity.getPositionVector().add(offset);
+                                          } else {
+                                             yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
+                                             distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.9, 0)));
+                                             if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                                dis = distance;
+                                                target = entity.getPositionVector().add(offset);
+                                             } else {
+                                                distance = fovDistance(entity.getPositionVector().add(offset));
+                                                if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
+                                                   dis = distance;
+                                                   target = entity.getPositionVector().add(offset);
+                                                }
+                                             }
                                           }
                                        }
                                     }
@@ -231,9 +192,9 @@ public class Aimbot extends Module {
          }
 
          if (target != null) {
-            this.setTarget(target);
-         } else {
-            this.setTarget(null);
+            float[] angle = calculateYawPitch(mc.thePlayer.getPositionVector().addVector(0,mc.thePlayer.getEyeHeight(),0), target);
+            mc.thePlayer.rotationYaw = angle[0];
+            mc.thePlayer.rotationPitch = angle[1];
          }
       }
    }
@@ -287,7 +248,7 @@ public class Aimbot extends Module {
    }
 
    public static float[] calculateYawPitch(Vec3 start, Vec3 vec) {
-      double diffX = vec.xCoord - start.xCoord;
+       double diffX = vec.xCoord - start.xCoord;
       double diffY = vec.yCoord - start.yCoord;
       double diffZ = vec.zCoord - start.zCoord;
       double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
@@ -303,18 +264,18 @@ public class Aimbot extends Module {
       double entityMotionPosX = 0;
       double entityMotionPosY = 0;
       double entityMotionPosZ = 0;
-      for (double i = 1; i <= ticks; i = i + 0.3) {
-         for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
-            if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
-               entityMotionPosX = dX * i;
-               entityMotionPosY = dY * i2;
-               entityMotionPosZ = dZ * i;
-            } else {
-               break;
-            }
-         }
-      }
+       for (double i = 1; i <= ticks; i = i + 0.3) {
+          for (double i2 = 1; i2 <= yTicks; i2 = i2 + 0.3) {
+             if (!mc.theWorld.checkBlockCollision(entity.getEntityBoundingBox().offset(dX * i, dY * i2, dZ * i))) {
+                entityMotionPosX = dX * i;
+                entityMotionPosY = dY * i2;
+                entityMotionPosZ = dZ * i;
+             } else {
+                break;
+             }
+          }
+       }
 
-      return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
+       return new Vec3(entityMotionPosX, entityMotionPosY, entityMotionPosZ);
    }
 }
