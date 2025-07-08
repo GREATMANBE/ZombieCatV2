@@ -1,5 +1,6 @@
 package zombiecat.client.module.modules.bannable;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -13,7 +14,7 @@ public class GhostBlock extends Module {
    public static BooleanSetting d;
 
    public GhostBlock() {
-      super("GhostBlock", Module.ModuleCategory.bannable);
+      super("GhostBlock", ModuleCategory.bannable);
       this.registerSetting(d = new BooleanSetting("Hold", true));
    }
 
@@ -23,7 +24,12 @@ public class GhostBlock extends Module {
          MovingObjectPosition ray = mc.objectMouseOver;
          if (ray != null && ray.typeOfHit == MovingObjectType.BLOCK) {
             BlockPos blockpos = ray.getBlockPos();
-            mc.theWorld.setBlockToAir(blockpos);
+
+            // Skip if block is a chest or trapped chest
+            if (mc.theWorld.getBlockState(blockpos).getBlock() != Blocks.chest &&
+                mc.theWorld.getBlockState(blockpos).getBlock() != Blocks.trapped_chest) {
+               mc.theWorld.setBlockToAir(blockpos);
+            }
          }
 
          if (!Keyboard.isKeyDown(this.keycode)) {
@@ -38,7 +44,12 @@ public class GhostBlock extends Module {
          MovingObjectPosition ray = mc.objectMouseOver;
          if (ray != null && ray.typeOfHit == MovingObjectType.BLOCK) {
             BlockPos blockpos = ray.getBlockPos();
-            mc.theWorld.setBlockToAir(blockpos);
+
+            // Skip if block is a chest or trapped chest
+            if (mc.theWorld.getBlockState(blockpos).getBlock() != Blocks.chest &&
+                mc.theWorld.getBlockState(blockpos).getBlock() != Blocks.trapped_chest) {
+               mc.theWorld.setBlockToAir(blockpos);
+            }
          }
 
          this.disable();
