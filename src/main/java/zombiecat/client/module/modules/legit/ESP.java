@@ -55,6 +55,7 @@ public class ESP extends Module {
                   ItemStack chest = living.getEquipmentInSlot(3);
                   ItemStack legs = living.getEquipmentInSlot(2);
                   ItemStack boots = living.getEquipmentInSlot(1);
+                  ItemStack mainHand = living.getHeldItem();
 
                   boolean chestBlack = chest != null
                           && chest.getItem() == Items.leather_chestplate
@@ -77,7 +78,9 @@ public class ESP extends Module {
                           && boots.getTagCompound().getCompoundTag("display").hasKey("color")
                           && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
-                  if (chestBlack && legsBlack && bootsBlack) {
+                  boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
+
+                  if (chestBlack && legsBlack && bootsBlack && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else {
                      Utils.HUD.drawBoxAroundEntity(entity, true, color);
@@ -170,7 +173,7 @@ public class ESP extends Module {
                        && boots.getTagCompound().getCompoundTag("display").hasKey("color")
                        && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
-               if (chestBlack && legsBlack && bootsBlack) {
+               if (chestBlack && legsBlack && bootsBlack && holdingNothing) {
                   drawTraces(entity, new Color(255, 0, 0, 150));
                }
             }
