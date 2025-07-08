@@ -21,6 +21,9 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
@@ -63,7 +66,7 @@ public class Aimbot extends Module {
                   net.minecraft.entity.monster.EntitySkeleton skeleton = (net.minecraft.entity.monster.EntitySkeleton) entity;
 
                   boolean wearingPumpkin = skeleton.getEquipmentInSlot(4) != null
-                          && skeleton.getEquipmentInSlot(4).getItem() == net.minecraft.init.Items.pumpkin;
+                          && skeleton.getEquipmentInSlot(4).getItem() == Item.getItemFromBlock(Blocks.pumpkin);
 
                   boolean holdingStoneSword = skeleton.getHeldItem() != null
                           && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
