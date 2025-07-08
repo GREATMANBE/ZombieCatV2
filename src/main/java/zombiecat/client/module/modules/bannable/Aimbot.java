@@ -120,27 +120,36 @@ public class Aimbot extends Module {
             if (mobPriority.getValue()) {
                for (Entity entity : mc.theWorld.loadedEntityList) {
                   if (entity instanceof EntityLivingBase
-                          && !(entity instanceof EntityArmorStand)
-                          && !(entity instanceof EntityWither)
-                          && !(entity instanceof EntityVillager)
-                          && !(entity instanceof EntityPlayer)
-                          && !(entity instanceof EntityChicken)
-                          && !(entity instanceof EntityPig)
-                          && !(entity instanceof EntityCow)
-                          && !(entity instanceof EntitySkeleton)
-                          && entity.isEntityAlive()) {
-                     validTargets.add(entity);
+                      && !(entity instanceof EntityArmorStand)
+                      && !(entity instanceof EntityWither)
+                      && !(entity instanceof EntityVillager)
+                      && !(entity instanceof EntityPlayer)
+                      && !(entity instanceof EntityChicken)
+                      && !(entity instanceof EntityPig)
+                      && !(entity instanceof EntityCow)
+                      && !(entity instanceof EntityBat)
+                      && !(entity instanceof EntitySquid)
+                      && !(entity instanceof EntityRabbit)
+                      && entity.isEntityAlive()) {
+                      validTargets.add(entity);
                   }
                }
             } else {
                for (Entity entity : mc.theWorld.loadedEntityList) {
                   if (entity instanceof EntityLivingBase
-                          && !(entity instanceof EntityArmorStand)
-                          && !(entity instanceof EntityWither)
-                          && !(entity instanceof EntityVillager)
-                          && !(entity instanceof EntityPlayer)
-                          && entity.isEntityAlive()) {
-                     validTargets.add(entity);
+                      && !(entity instanceof EntityArmorStand)
+                      && !(entity instanceof EntityWither)
+                      && !(entity instanceof EntityVillager)
+                      && !(entity instanceof EntityPlayer)
+                      && !(entity instanceof EntityChicken)
+                      && !(entity instanceof EntityPig)
+                      && !(entity instanceof EntityCow)
+                      && !(entity instanceof EntityBat)
+                      && !(entity instanceof EntitySquid)
+                      && !(entity instanceof EntityRabbit)
+                      && entity.isEntityAlive()) {
+                      validTargets.add(entity);
+                     }
                   }
                }
             }
