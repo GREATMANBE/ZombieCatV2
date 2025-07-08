@@ -23,13 +23,14 @@ import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
-   public static BooleanSetting pup; // Added pup toggle
-   public static BooleanSetting skelepriority; // Added skelepriority toggle
-   public static BooleanSetting mobPriority;
+   public static BooleanSetting pup;
+   public static BooleanSetting skelepriority;
+   public static BooleanSetting mobpriority; // Added mobpriority toggle
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -39,9 +40,9 @@ public class Aimbot extends Module {
       this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
       this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
-      this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
-      this.registerSetting(skelepriority = new BooleanSetting("SkelePriority", false)); // default off
-      this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
+      this.registerSetting(pup = new BooleanSetting("Pup", false));
+      this.registerSetting(skelepriority = new BooleanSetting("SkelePriority", false));
+      this.registerSetting(mobpriority = new BooleanSetting("MobPriority", false)); // Registered
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -55,64 +56,11 @@ public class Aimbot extends Module {
       double dis = 9999999;
       Vec3 target = null;
       if (Utils.Player.isPlayerInGame()) {
-          // If mobPriority is enabled, first try to find non-skeleton mobs
-        if (mobPriority.getValue()) {
-            // Find the closest valid mob that is NOT a skeleton with pumpkin+stone sword or iron armor
-            for (Entity entity : mc.theWorld.loadedEntityList) {
-                if (entity instanceof EntityLivingBase
-                        && !(entity instanceof EntityArmorStand)
-                        && !(entity instanceof EntityWither)
-                        && !(entity instanceof EntityVillager)
-                        && !(entity instanceof EntityPlayer)
-                        && !(entity instanceof EntityChicken)
-                        && !(entity instanceof EntityPig)
-                        && !(entity instanceof EntityCow)
-                        && entity.isEntityAlive()) {
 
-                    // Puppy logic: skip puppy wolves if pup toggle is off
-                    if (entity instanceof EntityWolf) {
-                        EntityWolf wolf = (EntityWolf) entity;
-                        if (!pup.getValue() && wolf.isChild()) {
-                            continue;
-                        }
-                    }
-
-                    // Skip skeletons with pumpkin+stone sword or iron armor here
-                    if (entity instanceof net.minecraft.entity.monster.EntitySkeleton) {
-                        net.minecraft.entity.monster.EntitySkeleton skeleton = (net.minecraft.entity.monster.EntitySkeleton) entity;
-                        boolean wearingPumpkin = skeleton.getEquipmentInSlot(4) != null
-                                && skeleton.getEquipmentInSlot(4).getItem() == Item.getItemFromBlock(Blocks.pumpkin);
-                        boolean holdingStoneSword = skeleton.getHeldItem() != null
-                                && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
-                        boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null
-                                && skeleton.getEquipmentInSlot(1).getItem() == net.minecraft.init.Items.iron_chestplate
-                                && skeleton.getEquipmentInSlot(2) != null
-                                && skeleton.getEquipmentInSlot(2).getItem() == net.minecraft.init.Items.iron_leggings
-                                && skeleton.getEquipmentInSlot(3) != null
-                                && skeleton.getEquipmentInSlot(3).getItem() == net.minecraft.init.Items.iron_boots;
-
-                        if ((wearingPumpkin && holdingStoneSword) || wearingIronArmor) {
-                            // Skip these skeletons now, will target later if no mobs found
-                            continue;
-                        }
-                    }
-
-                    Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
-                    double distance = fovDistance(entity.getPositionEyes(1).add(offset));
-                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
-                        dis = distance;
-                        target = entity.getPositionEyes(1).add(offset);
-                    }
-                }
-            }
-
-            // If no mob target found, fallback to skeleton priority targets
-            if (target == null) {
          boolean foundSkelePriorityTarget = false;
          Vec3 skeleTarget = null;
          double skeleDis = 9999999;
 
-         // First pass: if skelepriority enabled, find eligible skeleton targets
          if (skelepriority.getValue()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
                if (entity instanceof net.minecraft.entity.monster.EntitySkeleton && entity.isEntityAlive()) {
@@ -124,11 +72,11 @@ public class Aimbot extends Module {
                   boolean holdingStoneSword = skeleton.getHeldItem() != null
                           && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
 
-                  boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null // chestplate slot
+                  boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null
                           && skeleton.getEquipmentInSlot(1).getItem() == net.minecraft.init.Items.iron_chestplate
-                          && skeleton.getEquipmentInSlot(2) != null // leggings slot
+                          && skeleton.getEquipmentInSlot(2) != null
                           && skeleton.getEquipmentInSlot(2).getItem() == net.minecraft.init.Items.iron_leggings
-                          && skeleton.getEquipmentInSlot(3) != null // boots slot
+                          && skeleton.getEquipmentInSlot(3) != null
                           && skeleton.getEquipmentInSlot(3).getItem() == net.minecraft.init.Items.iron_boots;
 
                   if ((wearingPumpkin && holdingStoneSword) || wearingIronArmor) {
@@ -147,7 +95,6 @@ public class Aimbot extends Module {
          if (foundSkelePriorityTarget) {
             target = skeleTarget;
          } else {
-            // Normal targeting logic (same as before)
             for (Entity entity : mc.theWorld.loadedEntityList) {
                if (entity instanceof EntityLivingBase
                        && !(entity instanceof EntityArmorStand)
@@ -159,12 +106,16 @@ public class Aimbot extends Module {
                        && !(entity instanceof EntityCow)
                        && entity.isEntityAlive()) {
 
-                  // Puppy logic: skip puppy wolves if pup toggle is off
                   if (entity instanceof EntityWolf) {
                      EntityWolf wolf = (EntityWolf) entity;
                      if (!pup.getValue() && wolf.isChild()) {
                         continue;
                      }
+                  }
+
+                  // Mob priority filter
+                  if (mobpriority.getValue() && entity instanceof net.minecraft.entity.monster.EntitySkeleton) {
+                     continue;
                   }
 
                   Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
@@ -173,7 +124,6 @@ public class Aimbot extends Module {
                      dis = distance;
                      target = entity.getPositionEyes(1).add(offset);
                   } else {
-
                      double yOffset = entity.getPositionEyes(1).yCoord - entity.getPositionVector().yCoord;
                      distance = fovDistance(entity.getPositionVector().add(offset).add(new Vec3(0, -yOffset * 0.1, 0)));
                      if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionVector().add(offset))) {
