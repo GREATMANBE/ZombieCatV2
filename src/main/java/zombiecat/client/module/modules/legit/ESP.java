@@ -1,32 +1,31 @@
 package zombiecat.client.module.modules.legit;
 
-import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
-import zombiecat.client.module.setting.impl.StringSetting;
 import zombiecat.client.utils.Utils;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagInt;
 
 import java.awt.*;
 import java.util.List;
 
 public class ESP extends Module {
-
-   private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
-
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
-      this.registerSetting(colorSetting);
    }
 
    @SubscribeEvent
@@ -43,59 +42,12 @@ public class ESP extends Module {
                     && !(entity instanceof EntityPig)
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
-
-               int color = getESPColorRGB();
-
-               if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
-                       // Check for inventory here - make sure your mod supports this method or else remove it
-                       && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+               if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
-               } else if (entity instanceof EntityZombie) {
-                  EntityLivingBase living = (EntityLivingBase) entity;
-                  ItemStack chest = living.getEquipmentInSlot(3);
-                  ItemStack legs = living.getEquipmentInSlot(2);
-                  ItemStack boots = living.getEquipmentInSlot(1);
-                  ItemStack mainHand = living.getHeldItem();
-
-                  boolean chestBlack = isLeatherColored(chest, 0x000000);
-                  boolean legsBlack = isLeatherColored(legs, 0x000000);
-                  boolean bootsBlack = isLeatherColored(boots, 0x000000);
-
-                  boolean chestLime = isLeatherColored(chest, 0x55FF55);
-                  boolean legsLime = isLeatherColored(legs, 0x55FF55);
-                  boolean bootsLime = isLeatherColored(boots, 0x55FF55);
-
-                  boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
-
-                  if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                  } else if (chestLime && legsLime && bootsLime && holdingNothing) {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                  } else {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, color);
-                  }
                } else {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, color);
-               }
-            }
-         }
-
-         if (mc.objectMouseOver != null && mc.objectMouseOver.entityHit instanceof EntityLivingBase) {
-            EntityLivingBase target = (EntityLivingBase) mc.objectMouseOver.entityHit;
-            for (int slot = 1; slot <= 4; slot++) {
-               ItemStack item = target.getEquipmentInSlot(slot);
-               if (item != null && item.hasTagCompound() && item.getTagCompound().hasKey("display")) {
-                  int color = item.getTagCompound().getCompoundTag("display").getInteger("color");
-                  String slotName = switch (slot) {
-                     case 1 -> "Boots";
-                     case 2 -> "Leggings";
-                     case 3 -> "Chestplate";
-                     case 4 -> "Helmet";
-                     default -> "Armor";
-                  };
-                  Utils.HUD.addChatMessage(slotName + " Color: #" + String.format("%06X", color));
+                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
                }
             }
          }
@@ -120,41 +72,44 @@ public class ESP extends Module {
       Color color = new Color(255, 0, 0, 150);
       for (Entity entity : entities) {
          if (entity != thePlayer) {
-            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
-                    && entity.getInventory() != null
-                    && entity.getInventory()[0] != null
-                    && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-
             if (entity instanceof EntityZombie) {
                EntityLivingBase living = (EntityLivingBase) entity;
-               ItemStack chest = living.getEquipmentInSlot(3);
-               ItemStack legs = living.getEquipmentInSlot(2);
-               ItemStack boots = living.getEquipmentInSlot(1);
+               
+               // Check main hand holding nothing
                ItemStack mainHand = living.getHeldItem();
-
-               boolean chestLime = isLeatherColored(chest, 0x55FF55);
-               boolean legsLime = isLeatherColored(legs, 0x55FF55);
-               boolean bootsLime = isLeatherColored(boots, 0x55FF55);
-
-               boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
-
-               if (chestLime && legsLime && bootsLime && holdingNothing) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
+               boolean holdingNothing = (mainHand == null || mainHand.getItem() == null);
+               
+               // Check helmet for slime head
+               ItemStack helmet = living.getEquipmentInSlot(4);
+               boolean isSlimeHead = false;
+               if (helmet != null && helmet.getItem() == Items.skull) {
+                  NBTTagCompound tag = helmet.getTagCompound();
+                  if (tag != null && tag.hasKey("SkullOwner", 8)) {
+                     String owner = tag.getString("SkullOwner");
+                     if (owner.toLowerCase().contains("slime")) {
+                        isSlimeHead = true;
+                     }
+                  }
                }
-
-               boolean chestBlack = isLeatherColored(chest, 0x000000);
-               boolean legsBlack = isLeatherColored(legs, 0x000000);
-               boolean bootsBlack = isLeatherColored(boots, 0x000000);
-
-               if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
+               
+               // Debug print chestplate color
+               ItemStack chest = living.getEquipmentInSlot(3);
+               if (chest != null && chest.hasTagCompound() && chest.getTagCompound().hasKey("display", 10)) {
+                  int chestColor = chest.getTagCompound().getCompoundTag("display").getInteger("color");
+                  System.out.println("Chestplate color (hex): " + Integer.toHexString(chestColor));
+               }
+               
+               if (isSlimeHead && holdingNothing) {
+                  drawTraces(entity, new Color(255, 0, 0, 150));  // Lime color tracer
                }
             }
          }
       }
 
+   
       GL11.glEnd();
 
       GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -164,14 +119,17 @@ public class ESP extends Module {
       GL11.glDisable(GL11.GL_BLEND);
       GL11.glColor4f(1f, 1f, 1f, 1f);
    }
-
+   
    private void drawTraces(Entity entity, Color color) {
       Entity thePlayer = mc.thePlayer;
       if (thePlayer == null) return;
 
-      double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosX;
-      double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosY;
-      double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks - mc.getRenderManager().viewerPosZ;
+      double x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * Utils.Client.getTimer().renderPartialTicks
+              - mc.getRenderManager().viewerPosX);
+      double y = (entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * Utils.Client.getTimer().renderPartialTicks
+              - mc.getRenderManager().viewerPosY);
+      double z = (entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * Utils.Client.getTimer().renderPartialTicks
+              - mc.getRenderManager().viewerPosZ);
 
       float yaw = thePlayer.prevRotationYaw + (thePlayer.rotationYaw - thePlayer.prevRotationYaw) * Utils.Client.getTimer().renderPartialTicks;
       float pitch = thePlayer.prevRotationPitch + (thePlayer.rotationPitch - thePlayer.prevRotationPitch) * Utils.Client.getTimer().renderPartialTicks;
@@ -184,29 +142,5 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y + entity.height, z);
-   }
-
-   private boolean isLeatherColored(ItemStack stack, int rgb) {
-      return stack != null
-              && stack.getItem() != null
-              && (stack.getItem() == Items.leather_chestplate
-              || stack.getItem() == Items.leather_leggings
-              || stack.getItem() == Items.leather_boots)
-              && stack.hasTagCompound()
-              && stack.getTagCompound().hasKey("display")
-              && stack.getTagCompound().getCompoundTag("display").hasKey("color")
-              && stack.getTagCompound().getCompoundTag("display").getInteger("color") == rgb;
-   }
-
-   private int getESPColorRGB() {
-      switch (colorSetting.getValue().toLowerCase()) {
-         case "black":
-            return Color.black.getRGB();
-         case "white":
-            return Color.white.getRGB();
-         case "green":
-         default:
-            return Color.green.getRGB();
-      }
    }
 }
