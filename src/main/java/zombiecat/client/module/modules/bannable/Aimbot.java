@@ -61,7 +61,6 @@ public class Aimbot extends Module {
          boolean prioritizeSkeletons = false;
 
          if (mobPriority.getValue()) {
-            // Collect all non-skeleton valid targets
             for (Entity entity : mc.theWorld.loadedEntityList) {
                if (entity instanceof EntityLivingBase
                        && !(entity instanceof EntityArmorStand)
@@ -77,7 +76,6 @@ public class Aimbot extends Module {
                }
             }
 
-            // If no non-skeleton mobs found, collect special skeletons
             if (validTargets.isEmpty()) {
                for (Entity entity : mc.theWorld.loadedEntityList) {
                   if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
@@ -104,7 +102,6 @@ public class Aimbot extends Module {
                }
             }
 
-            prioritizeSkeletons = true;
          } else if (skelePriority.getValue()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
                if (entity instanceof EntitySkeleton && entity.isEntityAlive()) {
@@ -116,13 +113,13 @@ public class Aimbot extends Module {
                   ItemStack boots = skel.getEquipmentInSlot(1);
 
                   boolean isPumpkinSword = helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin)
-                          && hand != null && hand.getItem() == Items.stone_sword;
+                        && hand != null && hand.getItem() == Items.stone_sword;
 
                   boolean isIronArmorSword =
-                          hand != null && hand.getItem() == Items.stone_sword &&
-                          chest != null && chest.getItem() == Items.iron_chestplate &&
-                          legs != null && legs.getItem() == Items.iron_leggings &&
-                          boots != null && boots.getItem() == Items.iron_boots;
+                        hand != null && hand.getItem() == Items.stone_sword &&
+                        chest != null && chest.getItem() == Items.iron_chestplate &&
+                        legs != null && legs.getItem() == Items.iron_leggings &&
+                        boots != null && boots.getItem() == Items.iron_boots;
 
                   if (isPumpkinSword || isIronArmorSword) {
                      validTargets.add(entity);
