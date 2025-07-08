@@ -23,13 +23,13 @@ import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.init.Blocks;
 
 public class Aimbot extends Module {
    public static BooleanSetting onlyFire;
    public static BooleanSetting wsStair;
    public static BooleanSetting pup; // Added pup toggle
    public static BooleanSetting skelepriority; // Added skelepriority toggle
+   public static BooleanSetting mobPriority;
    public static SliderSetting a;
    public static SliderSetting predict;
    public static SliderSetting yPredict;
@@ -41,6 +41,7 @@ public class Aimbot extends Module {
       this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
       this.registerSetting(pup = new BooleanSetting("Pup", false)); // default off
       this.registerSetting(skelepriority = new BooleanSetting("SkelePriority", false)); // default off
+      this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
       this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
       this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
    }
@@ -54,7 +55,59 @@ public class Aimbot extends Module {
       double dis = 9999999;
       Vec3 target = null;
       if (Utils.Player.isPlayerInGame()) {
+          // If mobPriority is enabled, first try to find non-skeleton mobs
+        if (mobPriority.getValue()) {
+            // Find the closest valid mob that is NOT a skeleton with pumpkin+stone sword or iron armor
+            for (Entity entity : mc.theWorld.loadedEntityList) {
+                if (entity instanceof EntityLivingBase
+                        && !(entity instanceof EntityArmorStand)
+                        && !(entity instanceof EntityWither)
+                        && !(entity instanceof EntityVillager)
+                        && !(entity instanceof EntityPlayer)
+                        && !(entity instanceof EntityChicken)
+                        && !(entity instanceof EntityPig)
+                        && !(entity instanceof EntityCow)
+                        && entity.isEntityAlive()) {
 
+                    // Puppy logic: skip puppy wolves if pup toggle is off
+                    if (entity instanceof EntityWolf) {
+                        EntityWolf wolf = (EntityWolf) entity;
+                        if (!pup.getValue() && wolf.isChild()) {
+                            continue;
+                        }
+                    }
+
+                    // Skip skeletons with pumpkin+stone sword or iron armor here
+                    if (entity instanceof net.minecraft.entity.monster.EntitySkeleton) {
+                        net.minecraft.entity.monster.EntitySkeleton skeleton = (net.minecraft.entity.monster.EntitySkeleton) entity;
+                        boolean wearingPumpkin = skeleton.getEquipmentInSlot(4) != null
+                                && skeleton.getEquipmentInSlot(4).getItem() == Item.getItemFromBlock(Blocks.pumpkin);
+                        boolean holdingStoneSword = skeleton.getHeldItem() != null
+                                && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
+                        boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null
+                                && skeleton.getEquipmentInSlot(1).getItem() == net.minecraft.init.Items.iron_chestplate
+                                && skeleton.getEquipmentInSlot(2) != null
+                                && skeleton.getEquipmentInSlot(2).getItem() == net.minecraft.init.Items.iron_leggings
+                                && skeleton.getEquipmentInSlot(3) != null
+                                && skeleton.getEquipmentInSlot(3).getItem() == net.minecraft.init.Items.iron_boots;
+
+                        if ((wearingPumpkin && holdingStoneSword) || wearingIronArmor) {
+                            // Skip these skeletons now, will target later if no mobs found
+                            continue;
+                        }
+                    }
+
+                    Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
+                    double distance = fovDistance(entity.getPositionEyes(1).add(offset));
+                    if (distance < dis && canWallShot(mc.thePlayer.getPositionEyes(1), entity.getPositionEyes(1).add(offset))) {
+                        dis = distance;
+                        target = entity.getPositionEyes(1).add(offset);
+                    }
+                }
+            }
+
+            // If no mob target found, fallback to skeleton priority targets
+            if (target == null) {
          boolean foundSkelePriorityTarget = false;
          Vec3 skeleTarget = null;
          double skeleDis = 9999999;
