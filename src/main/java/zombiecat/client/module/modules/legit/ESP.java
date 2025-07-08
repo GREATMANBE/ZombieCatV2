@@ -78,9 +78,32 @@ public class ESP extends Module {
                           && boots.getTagCompound().getCompoundTag("display").hasKey("color")
                           && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
+                  boolean chestLime = chest != null
+                          && chest.getItem() == Items.leather_chestplate
+                          && chest.hasTagCompound()
+                          && chest.getTagCompound().hasKey("display")
+                          && chest.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+                  boolean legsLime = legs != null
+                          && legs.getItem() == Items.leather_leggings
+                          && legs.hasTagCompound()
+                          && legs.getTagCompound().hasKey("display")
+                          && legs.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+                  boolean bootsLime = boots != null
+                          && boots.getItem() == Items.leather_boots
+                          && boots.hasTagCompound()
+                          && boots.getTagCompound().hasKey("display")
+                          && boots.getTagCompound().getCompoundTag("display").hasKey("color")
+                          && boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
                   boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
 
                   if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else if (chestLime && legsLime && bootsLime && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else {
                      Utils.HUD.drawBoxAroundEntity(entity, true, color);
