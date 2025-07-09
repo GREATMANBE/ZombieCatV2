@@ -273,4 +273,4 @@ public class ESP extends Module {
           return new Color(r, g, b).getRGB();
       }
    }
-}
+
