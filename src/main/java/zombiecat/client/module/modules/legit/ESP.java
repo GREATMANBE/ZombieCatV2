@@ -224,15 +224,11 @@ public class ESP extends Module {
                   drawTraces(entity, Color.red);
                } else if (chestGold && legsGold && bootsGold && holdingNothing) {
                   drawTraces(entity, Color.red);
-               } else {
-                  drawTraces(entity, color);
                }
-            } else if (entity.isEntityAlive() && !(entity instanceof EntityPlayer) && !(entity instanceof EntityArmorStand)) {
-               drawTraces(entity, color);
             }
          }
       }
-      
+   
 
       GL11.glEnd();
 
