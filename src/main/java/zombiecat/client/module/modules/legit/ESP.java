@@ -1,3 +1,11 @@
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.client.event.RenderWorldLastEvent;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+
+import java.awt.Color;
+
 public class ESP extends Module {
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
