@@ -14,7 +14,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
-import zombiecat.client.module.setting.impl.IntegerSetting;
+import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 
 import java.awt.*;
@@ -22,9 +22,9 @@ import java.util.List;
 
 public class ESP extends Module {
 
-   private final IntegerSetting redSetting = new IntegerSetting("Red", 0, 0, 255);
-   private final IntegerSetting greenSetting = new IntegerSetting("Green", 255, 0, 255);
-   private final IntegerSetting blueSetting = new IntegerSetting("Blue", 0, 0, 255);
+   private final SliderSetting redSetting = new SliderSetting("Red", 0, 0, 255, 1);
+   private final SliderSetting greenSetting = new SliderSetting("Green", 255, 0, 255, 1);
+   private final SliderSetting blueSetting = new SliderSetting("Blue", 0, 0, 255, 1);
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
@@ -216,24 +216,23 @@ public class ESP extends Module {
                boolean legsGold = legs != null && legs.getItem() == Items.golden_leggings;
                boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
 
-               if (chestLime && legsLime && bootsLime && holdingNothing) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
-               }
-
                if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
+                  drawTraces(entity, Color.red);
+               } else if (chestLime && legsLime && bootsLime && holdingNothing) {
+                  drawTraces(entity, Color.red);
+               } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
+                  drawTraces(entity, Color.red);
+               } else if (chestGold && legsGold && bootsGold && holdingNothing) {
+                  drawTraces(entity, Color.red);
+               } else {
+                  drawTraces(entity, color);
                }
-
-               if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
-               }
-
-               if (chestGold && legsGold && bootsGold && holdingNothing) {
-                  drawTraces(entity, new Color(255, 0, 0, 150));
-               }
+            } else if (entity.isEntityAlive() && !(entity instanceof EntityPlayer) && !(entity instanceof EntityArmorStand)) {
+               drawTraces(entity, color);
             }
          }
       }
+      
 
       GL11.glEnd();
 
@@ -267,9 +266,9 @@ public class ESP extends Module {
    }
 
       private int getESPColorRGB() {
-          int r = redSetting.getValue();
-          int g = greenSetting.getValue();
-          int b = blueSetting.getValue();
+          int r = (int) redSetting.getValue();
+          int g = (int) greenSetting.getValue();
+          int b = (int) blueSetting.getValue();
           return new Color(r, g, b).getRGB();
       }
    }
