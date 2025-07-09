@@ -14,7 +14,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
-import zombiecat.client.module.setting.impl.StringSetting;
+import zombiecat.client.module.setting.impl.IntegerSetting;
 import zombiecat.client.utils.Utils;
 
 import java.awt.*;
@@ -22,11 +22,15 @@ import java.util.List;
 
 public class ESP extends Module {
 
-   private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
+   private final IntegerSetting redSetting = new IntegerSetting("Red", 0, 0, 255);
+   private final IntegerSetting greenSetting = new IntegerSetting("Green", 255, 0, 255);
+   private final IntegerSetting blueSetting = new IntegerSetting("Blue", 0, 0, 255);
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
-      this.registerSetting(colorSetting);
+      this.registerSetting(redSetting);
+      this.registerSetting(greenSetting);
+      this.registerSetting(blueSetting);
    }
 
    @SubscribeEvent
@@ -262,15 +266,11 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y + entity.height, z);
    }
 
-   private int getESPColorRGB() {
-      switch (colorSetting.getValue().toLowerCase()) {
-         case "black":
-            return Color.black.getRGB();
-         case "white":
-            return Color.white.getRGB();
-         case "green":
-         default:
-            return Color.green.getRGB();
+      private int getESPColorRGB() {
+          int r = redSetting.getValue();
+          int g = greenSetting.getValue();
+          int b = blueSetting.getValue();
+          return new Color(r, g, b).getRGB();
       }
    }
 }
