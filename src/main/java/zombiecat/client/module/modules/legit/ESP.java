@@ -1,3 +1,5 @@
+import zombiecat.client.module.Module;
+
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
