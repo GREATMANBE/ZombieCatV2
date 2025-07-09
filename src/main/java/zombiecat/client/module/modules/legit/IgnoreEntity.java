@@ -28,6 +28,6 @@ public class IgnoreEntity extends Module {
         if (!isOn) return false;
 
         // Allow only aggressive mobs, ignore everything else
-        return !(entity instanceof EntityMob || entity instanceof EntitySlime || entity instanceof EntityGhast || entity instanceof EntityDragon || entity instanceof EntityWither);
+        return !(entity instanceof EntityMob || entity instanceof EntitySlime || entity instanceof EntityGhast);
     }
 }
