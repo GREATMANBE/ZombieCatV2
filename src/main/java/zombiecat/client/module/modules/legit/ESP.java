@@ -1,43 +1,46 @@
-import net.minecraft.client.Minecraft;
+package zombiecat.client.module.modules.legit;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.StringUtils;
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.client.Minecraft;
 
-public class ESP extends Module {
+public class ESP {
 
-    private Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
 
-    // Call this method every tick or on a suitable event
-    public void printHeadgear() {
-        for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (!(entity instanceof EntityLivingBase)) continue;
-
-            EntityLivingBase living = (EntityLivingBase) entity;
-            ItemStack helmet = living.getEquipmentInSlot(4); // helmet slot
-
-            if (helmet != null) {
-                String itemName = getItemName(helmet);
-                String entityName = entity.getName();
-
-                System.out.println("[ESP] " + entityName + " is wearing on head: " + itemName);
-            }
-        }
+    public ESP() {
+        // Constructor
     }
 
-    private String getItemName(ItemStack stack) {
-        if (stack == null) return "Nothing";
+    // Call this method regularly (e.g., each tick) to print headgear info for mobs
+    public void printHeadgearInfo() {
+        if (mc.theWorld == null) return;
 
-        // Try to get display name
-        String displayName = stack.getDisplayName();
+        for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (!(entity instanceof EntityLivingBase)) continue;
+            EntityLivingBase living = (EntityLivingBase) entity;
 
-        if (!StringUtils.isNullOrEmpty(displayName)) {
-            return displayName;
+            ItemStack helmet = living.getEquipmentInSlot(4); // 4 is helmet slot
+
+            if (helmet != null) {
+                String headgearName = helmet.getDisplayName();
+
+                // Extra info if skull with NBT data
+                if (helmet.getItem() == Items.skull) {
+                    NBTTagCompound tag = helmet.getTagCompound();
+                    if (tag != null && tag.hasKey("SkullOwner")) {
+                        headgearName += " (Owner: " + tag.getString("SkullOwner") + ")";
+                    }
+                }
+
+                System.out.println(entity.getName() + " is wearing on head: " + headgearName);
+            } else {
+                System.out.println(entity.getName() + " has no headgear.");
+            }
         }
-
-        // fallback to item registry name
-        return stack.getItem().getUnlocalizedName();
     }
 }
