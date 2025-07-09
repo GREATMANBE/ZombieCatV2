@@ -5,13 +5,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.monster.EntitySkeleton;
+import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -21,102 +21,117 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.BooleanSetting;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.init.Blocks;
 
 public class Aimbot extends Module {
-   public static BooleanSetting onlyFire;
-   public static BooleanSetting wsStair;
-   public static BooleanSetting pup;
-   public static BooleanSetting skelepriority;
-   public static BooleanSetting mobpriority; // Added mobpriority toggle
-   public static SliderSetting a;
-   public static SliderSetting predict;
-   public static SliderSetting yPredict;
+    public static BooleanSetting onlyFire;
+    public static BooleanSetting wsStair;
+    public static BooleanSetting pup;
+    public static BooleanSetting skelePriority;
+    public static BooleanSetting mobPriority;
+    public static SliderSetting a;
+    public static SliderSetting predict;
+    public static SliderSetting yPredict;
 
-   public Aimbot() {
-      super("Aimbot", ModuleCategory.bannable);
-      this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
-      this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
-      this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
-      this.registerSetting(pup = new BooleanSetting("Pup", false));
-      this.registerSetting(skelepriority = new BooleanSetting("SkelePriority", false));
-      this.registerSetting(mobpriority = new BooleanSetting("MobPriority", false)); // Registered
-      this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
-      this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
-   }
+    public Aimbot() {
+        super("Aimbot", ModuleCategory.bannable);
+        this.registerSetting(a = new SliderSetting("Fineness", 0.4, 0.1, 1.0, 0.1));
+        this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
+        this.registerSetting(wsStair = new BooleanSetting("WSStair", true));
+        this.registerSetting(pup = new BooleanSetting("Pup", false));
+        this.registerSetting(skelePriority = new BooleanSetting("SkelePriority", false));
+        this.registerSetting(mobPriority = new BooleanSetting("MobPriority", false));
+        this.registerSetting(predict = new SliderSetting("Predict", 4, 0, 10, 0.1));
+        this.registerSetting(yPredict = new SliderSetting("YPredict", 4, 0, 10, 0.1));
+    }
 
-   @SubscribeEvent
-   public void re(RenderWorldLastEvent e) {
-      if (onlyFire.getValue() && !mc.gameSettings.keyBindUseItem.isKeyDown()) {
-         return;
-      }
+    private boolean isPumpkinHead(Entity entity) {
+        if (!(entity instanceof EntityLivingBase)) return false;
+        EntityLivingBase living = (EntityLivingBase) entity;
+        ItemStack helmet = living.getEquipmentInSlot(4);
+        return helmet != null && helmet.getItem() == Item.getItemFromBlock(Blocks.pumpkin);
+    }
 
-      double dis = 9999999;
-      Vec3 target = null;
-      if (Utils.Player.isPlayerInGame()) {
+    private boolean isArmoredSkele(Entity entity) {
+        if (!(entity instanceof EntitySkeleton)) return false;
+        EntitySkeleton skele = (EntitySkeleton) entity;
+        ItemStack boots = skele.getEquipmentInSlot(1);
+        ItemStack leggings = skele.getEquipmentInSlot(2);
+        ItemStack chest = skele.getEquipmentInSlot(3);
+        ItemStack held = skele.getHeldItem();
 
-         boolean foundSkelePriorityTarget = false;
-         Vec3 skeleTarget = null;
-         double skeleDis = 9999999;
+        return boots != null && boots.getItem() == Items.iron_boots
+                && leggings != null && leggings.getItem() == Items.iron_leggings
+                && chest != null && chest.getItem() == Items.iron_chestplate
+                && held != null && held.getItem() == Items.stone_sword;
+    }
 
-         if (skelepriority.getValue()) {
+    @SubscribeEvent
+    public void re(RenderWorldLastEvent e) {
+        if (onlyFire.getValue() && !mc.gameSettings.keyBindUseItem.isKeyDown()) {
+            return;
+        }
+
+        double dis = 9999999;
+        Vec3 target = null;
+        Entity targetEntity = null;
+
+        boolean anyPriorityFound = false;
+        boolean anyNonPriorityFound = false;
+
+        if (Utils.Player.isPlayerInGame()) {
             for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (entity instanceof net.minecraft.entity.monster.EntitySkeleton && entity.isEntityAlive()) {
-                  net.minecraft.entity.monster.EntitySkeleton skeleton = (net.minecraft.entity.monster.EntitySkeleton) entity;
+                if (entity instanceof EntityLivingBase
+                        && !(entity instanceof EntityArmorStand)
+                        && !(entity instanceof EntityWither)
+                        && !(entity instanceof EntityVillager)
+                        && !(entity instanceof EntityPlayer)
+                        && !(entity instanceof EntityChicken)
+                        && !(entity instanceof EntityPig)
+                        && !(entity instanceof EntityCow)
+                        && entity.isEntityAlive()) {
 
-                  boolean wearingPumpkin = skeleton.getEquipmentInSlot(4) != null
-                          && skeleton.getEquipmentInSlot(4).getItem() == Item.getItemFromBlock(Blocks.pumpkin);
+                    if (entity instanceof EntityWolf) {
+                        EntityWolf wolf = (EntityWolf) entity;
+                        if (!pup.getValue() && wolf.isChild()) {
+                            continue;
+                        }
+                    }
 
-                  boolean holdingStoneSword = skeleton.getHeldItem() != null
-                          && skeleton.getHeldItem().getItem() == net.minecraft.init.Items.stone_sword;
-
-                  boolean wearingIronArmor = skeleton.getEquipmentInSlot(1) != null
-                          && skeleton.getEquipmentInSlot(1).getItem() == net.minecraft.init.Items.iron_chestplate
-                          && skeleton.getEquipmentInSlot(2) != null
-                          && skeleton.getEquipmentInSlot(2).getItem() == net.minecraft.init.Items.iron_leggings
-                          && skeleton.getEquipmentInSlot(3) != null
-                          && skeleton.getEquipmentInSlot(3).getItem() == net.minecraft.init.Items.iron_boots;
-
-                  if ((wearingPumpkin && holdingStoneSword) || wearingIronArmor) {
-                     Vec3 offset = getMotionVec(skeleton, (float) predict.getValue(), (float) yPredict.getValue());
-                     double distance = fovDistance(skeleton.getPositionEyes(1).add(offset));
-                     if (distance < skeleDis && canWallShot(mc.thePlayer.getPositionEyes(1), skeleton.getPositionEyes(1).add(offset))) {
-                        skeleDis = distance;
-                        skeleTarget = skeleton.getPositionEyes(1).add(offset);
-                        foundSkelePriorityTarget = true;
-                     }
-                  }
-               }
+                    boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
+                    if (skelePriority.getValue() && isPriority) {
+                        anyPriorityFound = true;
+                    }
+                    if (mobPriority.getValue() && !isPriority) {
+                        anyNonPriorityFound = true;
+                    }
+                }
             }
-         }
 
-         if (foundSkelePriorityTarget) {
-            target = skeleTarget;
-         } else {
             for (Entity entity : mc.theWorld.loadedEntityList) {
-               if (entity instanceof EntityLivingBase
-                       && !(entity instanceof EntityArmorStand)
-                       && !(entity instanceof EntityWither)
-                       && !(entity instanceof EntityVillager)
-                       && !(entity instanceof EntityPlayer)
-                       && !(entity instanceof EntityChicken)
-                       && !(entity instanceof EntityPig)
-                       && !(entity instanceof EntityCow)
-                       && entity.isEntityAlive()) {
+                if (entity instanceof EntityLivingBase
+                        && !(entity instanceof EntityArmorStand)
+                        && !(entity instanceof EntityWither)
+                        && !(entity instanceof EntityVillager)
+                        && !(entity instanceof EntityPlayer)
+                        && !(entity instanceof EntityChicken)
+                        && !(entity instanceof EntityPig)
+                        && !(entity instanceof EntityCow)
+                        && entity.isEntityAlive()) {
 
-                  if (entity instanceof EntityWolf) {
-                     EntityWolf wolf = (EntityWolf) entity;
-                     if (!pup.getValue() && wolf.isChild()) {
+                    if (entity instanceof EntityWolf) {
+                        EntityWolf wolf = (EntityWolf) entity;
+                        if (!pup.getValue() && wolf.isChild()) {
+                            continue;
+                        }
+                    }
+
+                    boolean isPriority = isPumpkinHead(entity) || isArmoredSkele(entity);
+                    if (skelePriority.getValue() && anyPriorityFound && !isPriority) {
                         continue;
-                     }
-                  }
-
-                  // Mob priority filter
-                  if (mobpriority.getValue() && entity instanceof net.minecraft.entity.monster.EntitySkeleton) {
-                     continue;
-                  }
+                    }
+                    if (mobPriority.getValue() && anyNonPriorityFound && isPriority) {
+                        continue;
+                    }
 
                   Vec3 offset = getMotionVec(entity, (float) predict.getValue(), (float) yPredict.getValue());
                   double distance = fovDistance(entity.getPositionEyes(1).add(offset));
