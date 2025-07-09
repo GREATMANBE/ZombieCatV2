@@ -1,35 +1,35 @@
 package zombiecat.client.module.modules.legit;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.item.ItemStack;
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.client.Minecraft;
+import zombiecat.client.module.Module;
+import zombiecat.client.module.Category;
 
-public class ESP {
+public class ESP extends Module {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
     public ESP() {
-        // Constructor
+        super("ESP", Category.LEGIT);
     }
 
-    // Call this method regularly (e.g., each tick) to print headgear info for mobs
-    public void printHeadgearInfo() {
+    @Override
+    public void onUpdate() {
         if (mc.theWorld == null) return;
 
         for (Entity entity : mc.theWorld.loadedEntityList) {
             if (!(entity instanceof EntityLivingBase)) continue;
             EntityLivingBase living = (EntityLivingBase) entity;
 
-            ItemStack helmet = living.getEquipmentInSlot(4); // 4 is helmet slot
+            ItemStack helmet = living.getEquipmentInSlot(4);
 
             if (helmet != null) {
                 String headgearName = helmet.getDisplayName();
 
-                // Extra info if skull with NBT data
                 if (helmet.getItem() == Items.skull) {
                     NBTTagCompound tag = helmet.getTagCompound();
                     if (tag != null && tag.hasKey("SkullOwner")) {
