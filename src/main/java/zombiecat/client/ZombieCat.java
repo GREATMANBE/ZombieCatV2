@@ -16,6 +16,7 @@ import zombiecat.client.module.Module;
 import zombiecat.client.module.ModuleManager;
 import zombiecat.client.utils.Utils;
 import zombiecat.client.commands.CommandESPAdd;
+import zombiecat.client.module.modules.legit.ESP;
 
 @Mod(
    modid = "zombiecat",
