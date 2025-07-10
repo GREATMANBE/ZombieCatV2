@@ -44,8 +44,8 @@ public class ESP extends Module {
 
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-               } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
+               } else if (entity instanceof EntityZombie && ((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
+                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                } else if (entity instanceof EntityZombie) {
                   EntityLivingBase living = (EntityLivingBase) entity;
                   ItemStack chest = living.getEquipmentInSlot(3);
@@ -113,6 +113,8 @@ public class ESP extends Module {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else if (chestGold && legsGold && bootsGold && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else if (entity instanceof EntityZombie && ((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                   } else {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
                   }
