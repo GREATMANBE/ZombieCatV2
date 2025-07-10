@@ -74,7 +74,7 @@ public class WindowDetect extends Module {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!this.isToggled() || Minecraft.getMinecraft().theWorld == null) return;
+        if (!this.isOn() || Minecraft.getMinecraft().theWorld == null) return;
 
         for (Entity entity : Minecraft.getMinecraft().theWorld.loadedEntityList) {
             if (!(entity instanceof IMob)) continue;
