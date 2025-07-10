@@ -42,7 +42,7 @@ public class ESP extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
-               if (((EntityLivingBase) entity).isPotionActive(Potion.getPotionById(14))) {
+               if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
                    System.out.println("Invisible mob detected: " + entity);
                    Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                }
