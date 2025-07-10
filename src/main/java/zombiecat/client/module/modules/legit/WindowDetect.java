@@ -19,9 +19,14 @@ public class WindowDetect extends Module {
 
     public WindowDetect() {
         super("WindowDetect", ModuleCategory.legit);
-        loadCoordinates();
     }
-
+    
+    @Override
+    public void onEnable() {
+        loadCoordinates();
+        System.out.println("WindowDetect enabled. Loaded coords: " + trackedCoords.size());
+    }
+    
     private static class BlockPos {
         public final int x, y, z;
 
