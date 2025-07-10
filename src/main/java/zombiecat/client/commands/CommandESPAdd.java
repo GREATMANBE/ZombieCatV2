@@ -25,7 +25,7 @@ public class CommandESPAdd extends CommandBase {
     }
 
     @Override
-     public void execute(MinecraftServer server, ICommandSender sender, String[] args) {
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 4 && args[0].equalsIgnoreCase("add")) {
             try {
                 int x = Integer.parseInt(args[1]);
