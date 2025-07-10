@@ -16,22 +16,83 @@ import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.StringSetting;
 import zombiecat.client.utils.Utils;
-
 import java.awt.*;
 import java.util.List;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.init.SoundEvents;
+import java.io.*;
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
+import net.minecraftforge.client.ClientCommandHandler;
 
 public class ESP extends Module {
 
+   public class CommandESP extends CommandBase {
+      @Override
+      public String getCommandName() {
+         return "esp";
+      }
+
+       @Override
+       public String getCommandUsage(ICommandSender sender) {
+           return "/esp add <x> <y> <z> OR /esp remove <x> <y> <z>";
+       }
+
+       @Override
+       public void processCommand(ICommandSender sender, String[] args) {
+           if (args.length < 4) {
+               sender.addChatMessage(new ChatComponentText("Usage: " + getCommandUsage(sender)));
+               return;
+           }
+           String sub = args[0];
+           try {
+               int x = Integer.parseInt(args[1]);
+               int y = Integer.parseInt(args[2]);
+               int z = Integer.parseInt(args[3]);
+               BlockPos pos = new BlockPos(x, y, z);
+   
+               if ("add".equalsIgnoreCase(sub)) {
+                   if (addTrackedCoord(pos)) {
+                       sender.addChatMessage(new ChatComponentText("Added ESP coordinate: " + pos));
+                   } else {
+                       sender.addChatMessage(new ChatComponentText("Coordinate already tracked."));
+                   }
+               } else if ("remove".equalsIgnoreCase(sub)) {
+                   if (removeTrackedCoord(pos)) {
+                       sender.addChatMessage(new ChatComponentText("Removed ESP coordinate: " + pos));
+                   } else {
+                       sender.addChatMessage(new ChatComponentText("Coordinate not found."));
+                   }
+               } else {
+                   sender.addChatMessage(new ChatComponentText("Unknown subcommand."));
+               }
+           } catch (NumberFormatException e) {
+               sender.addChatMessage(new ChatComponentText("Coordinates must be integers."));
+           }
+       }
+   }
+
    private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
+   private final CopyOnWriteArrayList<BlockPos> trackedCoords = new CopyOnWriteArrayList<>();
+   private final File coordsFile = new File(mc.mcDataDir, "esp_coords.txt");
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
       this.registerSetting(colorSetting);
+      loadCoordsFromFile();
+      ClientCommandHandler.instance.registerCommand(new CommandESP());
    }
 
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
       if (Utils.Player.isPlayerInGame()) {
+         checkForSpawnedEntities();
          trace();
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
@@ -127,6 +188,18 @@ public class ESP extends Module {
          }
       }
    }
+   private void checkForSpawnedEntities() {
+      for (Entity entity : mc.theWorld.loadedEntityList) {
+         BlockPos entityPos = entity.getPosition();
+         if (trackedCoords.contains(entityPos)) {
+                     // Play sound when mob spawns at tracked coords
+            mc.theWorld.playSound(entityPos, SoundEvents.entity_player_levelup, SoundCategory.PLAYERS, 1.0F, 1.0F, false);
+                     // Optionally remove coordinate after detection if only want 1-time alert:
+                     // trackedCoords.remove(entityPos);
+                     // saveCoordsToFile();
+                 }
+             }
+         }
 
    public void trace() {
       Entity thePlayer = mc.thePlayer;
@@ -261,6 +334,54 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y + entity.height, z);
    }
+   
+   public boolean addTrackedCoord(BlockPos pos) {
+   if (!trackedCoords.contains(pos)) {
+      trackedCoords.add(pos);
+      saveCoordsToFile();
+      return true;
+      }
+    return false;
+   }
+
+public boolean removeTrackedCoord(BlockPos pos) {
+    if (trackedCoords.remove(pos)) {
+        saveCoordsToFile();
+        return true;
+    }
+    return false;
+}
+
+   private void saveCoordsToFile() {
+   try (BufferedWriter writer = new BufferedWriter(new FileWriter(coordsFile))) {
+      for (BlockPos pos : trackedCoords) {
+         writer.write(pos.getX() + " " + pos.getY() + " " + pos.getZ());
+         writer.newLine();
+      }
+    } catch (IOException e) {
+        e.printStackTrace();
+      }
+   }
+
+   private void loadCoordsFromFile() {
+      if (!coordsFile.exists()) return;
+      try (BufferedReader reader = new BufferedReader(new FileReader(coordsFile))) {
+         String line;
+         while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(" ");
+            if (parts.length == 3) {
+               try {
+                  int x = Integer.parseInt(parts[0]);
+                  int y = Integer.parseInt(parts[1]);
+                  int z = Integer.parseInt(parts[2]);
+                  trackedCoords.add(new BlockPos(x, y, z));
+               } catch (NumberFormatException ignored) { }
+            }
+        }
+    } catch (IOException e) {
+         e.printStackTrace();
+    }
+}
 
    private int getESPColorRGB() {
       switch (colorSetting.getValue().toLowerCase()) {
