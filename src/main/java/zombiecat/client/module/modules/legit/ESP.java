@@ -43,16 +43,8 @@ public class ESP extends Module {
                     && entity.isEntityAlive()) {
 
                if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
-                   System.out.println("Invisible mob detected: " + entity);
-               
-                   boolean wasInvisible = entity.isInvisible();
-                   if (wasInvisible) entity.setInvisible(false); // Force it visible for rendering
-               
-                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
-               
-                   if (wasInvisible) entity.setInvisible(true); // Restore invisibility
+                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                }
-
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                } else if (entity instanceof EntityZombie) {
@@ -122,9 +114,6 @@ public class ESP extends Module {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else if (chestGold && legsGold && bootsGold && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                  } else {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
-                  }
                } else {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
                }
