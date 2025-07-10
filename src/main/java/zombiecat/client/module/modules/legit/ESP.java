@@ -1,3 +1,4 @@
+
 package zombiecat.client.module.modules.legit;
 
 import net.minecraft.entity.*;
@@ -10,7 +11,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.Vec3;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
@@ -19,17 +19,11 @@ import zombiecat.client.module.setting.impl.StringSetting;
 import zombiecat.client.utils.Utils;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ESP extends Module {
 
    private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
-
-   // ADDED START
-   // Store tracked coordinates
-   private final List<int[]> trackedCoords = new ArrayList<>();
-   // ADDED END
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
@@ -40,11 +34,6 @@ public class ESP extends Module {
    public void re(RenderWorldLastEvent e) {
       if (Utils.Player.isPlayerInGame()) {
          trace();
-
-         // ADDED START
-         checkSpawnedMobsAtTrackedCoords();
-         // ADDED END
-
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
                     && !(entity instanceof EntityArmorStand)
@@ -69,7 +58,7 @@ public class ESP extends Module {
                   ItemStack boots = living.getEquipmentInSlot(1);
                   ItemStack mainHand = living.getHeldItem();
 
-                 boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                  boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                           chest.getTagCompound().hasKey("display") &&
                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
                           chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
@@ -285,43 +274,4 @@ public class ESP extends Module {
             return Color.green.getRGB();
       }
    }
-      // ADDED START
-   /**
-    * Adds a coordinate to track for mob spawns.
-    * @param x coordinate X
-    * @param y coordinate Y
-    * @param z coordinate Z
-    */
-   public void addTrackedCoordinate(int x, int y, int z) {
-      trackedCoords.add(new int[]{x, y, z});
-   }
-
-   private void checkSpawnedMobsAtTrackedCoords() {
-       List<int[]> toRemove = new ArrayList<>();
-       for (Entity entity : mc.theWorld.loadedEntityList) {
-           if (entity instanceof EntityLivingBase && !(entity instanceof EntityPlayer)) {
-               int ex = (int) Math.floor(entity.posX);
-               int ey = (int) Math.floor(entity.posY);
-               int ez = (int) Math.floor(entity.posZ);
-   
-               for (int[] coord : trackedCoords) {
-                   if (coord[0] == ex && coord[1] == ey && coord[2] == ez) {
-                       playMobSpawnSound(entity);
-                       toRemove.add(coord);
-                       break;
-                   }
-               }
-           }
-       }
-       trackedCoords.removeAll(toRemove);
-   }
-
-   private void playMobSpawnSound(Entity entity) {
-      if (mc.thePlayer == null || mc.theWorld == null) return;
-
-      // Using a generic mob ambient sound for simplicity
-      mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "mob.zombie.say", 1.0F, 1.0F, false);
-   }
-
-   
 }
