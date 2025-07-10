@@ -45,6 +45,7 @@ public class WindowDetect extends Module {
     }
 
     private void loadCoordinates() {
+        System.out.println("Loaded coords: " + trackedCoords.size());
         File file = new File("esp_coords.txt");
         if (!file.exists()) return;
 
@@ -74,6 +75,7 @@ public class WindowDetect extends Module {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
+        System.out.println("WindowDetect is running");
         if (!this.isOn() || Minecraft.getMinecraft().theWorld == null) return;
 
         for (Entity entity : Minecraft.getMinecraft().theWorld.loadedEntityList) {
