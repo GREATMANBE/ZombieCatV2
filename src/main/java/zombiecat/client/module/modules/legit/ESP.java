@@ -69,7 +69,7 @@ public class ESP extends Module {
                   ItemStack boots = living.getEquipmentInSlot(1);
                   ItemStack mainHand = living.getHeldItem();
 
-                  boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                 boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                           chest.getTagCompound().hasKey("display") &&
                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
                           chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
@@ -194,28 +194,28 @@ public class ESP extends Module {
 
                boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
                        legs.getTagCompound().hasKey("display") &&
-                       legs.getCompoundTag("display").hasKey("color") &&
-                       legs.getCompoundTag("display").getInteger("color") == 0x000000;
+                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
                boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
                        boots.getTagCompound().hasKey("display") &&
-                       boots.getCompoundTag("display").hasKey("color") &&
-                       boots.getCompoundTag("display").getInteger("color") == 0x000000;
+                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
                boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                        chest.getTagCompound().hasKey("display") &&
-                       chest.getCompoundTag("display").hasKey("color") &&
-                       chest.getCompoundTag("display").getInteger("color") == 0xFFAA00;
+                       chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
 
                boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
                        legs.getTagCompound().hasKey("display") &&
-                       legs.getCompoundTag("display").hasKey("color") &&
-                       legs.getCompoundTag("display").getInteger("color") == 0xFF5555;
+                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
 
                boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
                        boots.getTagCompound().hasKey("display") &&
-                       boots.getCompoundTag("display").hasKey("color") &&
-                       boots.getCompoundTag("display").getInteger("color") == 0xAA0000;
+                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
 
                boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
                boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
