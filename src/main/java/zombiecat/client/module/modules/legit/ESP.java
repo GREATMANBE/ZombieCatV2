@@ -42,8 +42,9 @@ public class ESP extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
-               if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
+               if (((EntityLivingBase) entity).isPotionActive(Potion.getPotionById(14))) {
+                   System.out.println("Invisible mob detected: " + entity);
+                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                }
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
