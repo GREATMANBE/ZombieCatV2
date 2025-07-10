@@ -24,8 +24,6 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.init.SoundEvents;
 import java.io.*;
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -193,7 +191,7 @@ public class ESP extends Module {
          BlockPos entityPos = entity.getPosition();
          if (trackedCoords.contains(entityPos)) {
                      // Play sound when mob spawns at tracked coords
-            mc.theWorld.playSound(entityPos, SoundEvents.entity_player_levelup, SoundCategory.PLAYERS, 1.0F, 1.0F, false);
+            mc.theWorld.playSoundEffect(entityPos.getX(), entityPos.getY(), entityPos.getZ(), "random.levelup", 1.0F, 1.0F);
                      // Optionally remove coordinate after detection if only want 1-time alert:
                      // trackedCoords.remove(entityPos);
                      // saveCoordsToFile();
