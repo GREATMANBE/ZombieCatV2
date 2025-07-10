@@ -15,6 +15,7 @@ import zombiecat.client.config.ConfigManager;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.ModuleManager;
 import zombiecat.client.utils.Utils;
+import zombiecat.client.module.setting.CommandESPAdd;
 
 @Mod(
    modid = "zombiecat",
@@ -39,6 +40,7 @@ public class ZombieCat {
       clientConfig = new ClientConfig();
       clientConfig.applyConfig();
       ClientCommandHandler.instance.registerCommand(new CopyCommand());
+      ClientCommandHandler.instance.registerCommand(new CommandESPAdd());
    }
 
    @SubscribeEvent
