@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import zombiecat.client.module.modules.legit.IgnoreEntity;
 import zombiecat.client.module.modules.legit.ZHF;
 import zombiecat.client.module.modules.unlegit.Reach;
+import net.minecraft.entity.EnumCreatureType;
 
 import java.util.ArrayList;
 import java.util.List;
