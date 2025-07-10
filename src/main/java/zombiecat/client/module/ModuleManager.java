@@ -9,6 +9,7 @@ import zombiecat.client.module.modules.client.HUD;
 import zombiecat.client.module.modules.legit.*;
 import zombiecat.client.module.modules.unlegit.*;
 import zombiecat.client.utils.Utils;
+import zombiecat.client.module.modules.legit.WindowDetect;
 
 import java.util.ArrayList;
 import java.util.Comparator;
