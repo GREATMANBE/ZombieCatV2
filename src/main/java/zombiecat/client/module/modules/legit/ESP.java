@@ -10,8 +10,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.Vec3;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -322,8 +320,7 @@ public class ESP extends Module {
       if (mc.thePlayer == null || mc.theWorld == null) return;
 
       // Using a generic mob ambient sound for simplicity
-      SoundEvent soundEvent = new SoundEvent(new ResourceLocation("entity.mob.ambient"));
-      mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, soundEvent, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
+      mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, "mob.zombie.say", 1.0F, 1.0F, false);
    }
 
    
