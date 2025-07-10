@@ -10,88 +10,43 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.Vec3;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.StringSetting;
 import zombiecat.client.utils.Utils;
+
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraft.entity.EntityLivingBase;
-import java.io.*;
-import java.util.Iterator;
-import java.util.concurrent.CopyOnWriteArrayList;
-import net.minecraftforge.client.ClientCommandHandler;
 
 public class ESP extends Module {
 
-   public class CommandESP extends CommandBase {
-      @Override
-      public String getCommandName() {
-         return "esp";
-      }
-
-       @Override
-       public String getCommandUsage(ICommandSender sender) {
-           return "/esp add <x> <y> <z> OR /esp remove <x> <y> <z>";
-       }
-
-       @Override
-       public void processCommand(ICommandSender sender, String[] args) {
-           if (args.length < 4) {
-               sender.addChatMessage(new ChatComponentText("Usage: " + getCommandUsage(sender)));
-               return;
-           }
-           String sub = args[0];
-           try {
-               int x = Integer.parseInt(args[1]);
-               int y = Integer.parseInt(args[2]);
-               int z = Integer.parseInt(args[3]);
-               BlockPos pos = new BlockPos(x, y, z);
-   
-               if ("add".equalsIgnoreCase(sub)) {
-                   if (addTrackedCoord(pos)) {
-                       sender.addChatMessage(new ChatComponentText("Added ESP coordinate: " + pos));
-                   } else {
-                       sender.addChatMessage(new ChatComponentText("Coordinate already tracked."));
-                   }
-               } else if ("remove".equalsIgnoreCase(sub)) {
-                   if (removeTrackedCoord(pos)) {
-                       sender.addChatMessage(new ChatComponentText("Removed ESP coordinate: " + pos));
-                   } else {
-                       sender.addChatMessage(new ChatComponentText("Coordinate not found."));
-                   }
-               } else {
-                   sender.addChatMessage(new ChatComponentText("Unknown subcommand."));
-               }
-           } catch (NumberFormatException e) {
-               sender.addChatMessage(new ChatComponentText("Coordinates must be integers."));
-           }
-       }
-   }
-
    private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
-   private final CopyOnWriteArrayList<BlockPos> trackedCoords = new CopyOnWriteArrayList<>();
-   private final File coordsFile = new File(mc.mcDataDir, "esp_coords.txt");
+
+   // ADDED START
+   // Store tracked coordinates
+   private final List<int[]> trackedCoords = new ArrayList<>();
+   // ADDED END
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
       this.registerSetting(colorSetting);
-      loadCoordsFromFile();
-      ClientCommandHandler.instance.registerCommand(new CommandESP());
    }
 
    @SubscribeEvent
    public void re(RenderWorldLastEvent e) {
       if (Utils.Player.isPlayerInGame()) {
-         checkForSpawnedEntities();
          trace();
+
+         // ADDED START
+         checkSpawnedMobsAtTrackedCoords();
+         // ADDED END
+
          for (Entity entity : mc.theWorld.loadedEntityList) {
             if (entity instanceof EntityLivingBase
                     && !(entity instanceof EntityArmorStand)
@@ -186,18 +141,6 @@ public class ESP extends Module {
          }
       }
    }
-   private void checkForSpawnedEntities() {
-      for (Entity entity : mc.theWorld.loadedEntityList) {
-         BlockPos entityPos = entity.getPosition();
-         if (trackedCoords.contains(entityPos)) {
-                     // Play sound when mob spawns at tracked coords
-            mc.theWorld.playSoundEffect(entityPos.getX(), entityPos.getY(), entityPos.getZ(), "random.levelup", 1.0F, 1.0F);
-                     // Optionally remove coordinate after detection if only want 1-time alert:
-                     // trackedCoords.remove(entityPos);
-                     // saveCoordsToFile();
-                 }
-             }
-         }
 
    public void trace() {
       Entity thePlayer = mc.thePlayer;
@@ -253,28 +196,28 @@ public class ESP extends Module {
 
                boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
                        legs.getTagCompound().hasKey("display") &&
-                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+                       legs.getCompoundTag("display").hasKey("color") &&
+                       legs.getCompoundTag("display").getInteger("color") == 0x000000;
 
                boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
                        boots.getTagCompound().hasKey("display") &&
-                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+                       boots.getCompoundTag("display").hasKey("color") &&
+                       boots.getCompoundTag("display").getInteger("color") == 0x000000;
 
                boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                        chest.getTagCompound().hasKey("display") &&
-                       chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                       chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
+                       chest.getCompoundTag("display").hasKey("color") &&
+                       chest.getCompoundTag("display").getInteger("color") == 0xFFAA00;
 
                boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
                        legs.getTagCompound().hasKey("display") &&
-                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
+                       legs.getCompoundTag("display").hasKey("color") &&
+                       legs.getCompoundTag("display").getInteger("color") == 0xFF5555;
 
                boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
                        boots.getTagCompound().hasKey("display") &&
-                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
+                       boots.getCompoundTag("display").hasKey("color") &&
+                       boots.getCompoundTag("display").getInteger("color") == 0xAA0000;
 
                boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
                boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
@@ -332,54 +275,6 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y + entity.height, z);
    }
-   
-   public boolean addTrackedCoord(BlockPos pos) {
-   if (!trackedCoords.contains(pos)) {
-      trackedCoords.add(pos);
-      saveCoordsToFile();
-      return true;
-      }
-    return false;
-   }
-
-public boolean removeTrackedCoord(BlockPos pos) {
-    if (trackedCoords.remove(pos)) {
-        saveCoordsToFile();
-        return true;
-    }
-    return false;
-}
-
-   private void saveCoordsToFile() {
-   try (BufferedWriter writer = new BufferedWriter(new FileWriter(coordsFile))) {
-      for (BlockPos pos : trackedCoords) {
-         writer.write(pos.getX() + " " + pos.getY() + " " + pos.getZ());
-         writer.newLine();
-      }
-    } catch (IOException e) {
-        e.printStackTrace();
-      }
-   }
-
-   private void loadCoordsFromFile() {
-      if (!coordsFile.exists()) return;
-      try (BufferedReader reader = new BufferedReader(new FileReader(coordsFile))) {
-         String line;
-         while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(" ");
-            if (parts.length == 3) {
-               try {
-                  int x = Integer.parseInt(parts[0]);
-                  int y = Integer.parseInt(parts[1]);
-                  int z = Integer.parseInt(parts[2]);
-                  trackedCoords.add(new BlockPos(x, y, z));
-               } catch (NumberFormatException ignored) { }
-            }
-        }
-    } catch (IOException e) {
-         e.printStackTrace();
-    }
-}
 
    private int getESPColorRGB() {
       switch (colorSetting.getValue().toLowerCase()) {
@@ -392,4 +287,44 @@ public boolean removeTrackedCoord(BlockPos pos) {
             return Color.green.getRGB();
       }
    }
+      // ADDED START
+   /**
+    * Adds a coordinate to track for mob spawns.
+    * @param x coordinate X
+    * @param y coordinate Y
+    * @param z coordinate Z
+    */
+   public void addTrackedCoordinate(int x, int y, int z) {
+      trackedCoords.add(new int[]{x, y, z});
+   }
+
+   private void checkSpawnedMobsAtTrackedCoords() {
+       List<int[]> toRemove = new ArrayList<>();
+       for (Entity entity : mc.theWorld.loadedEntityList) {
+           if (entity instanceof EntityLivingBase && !(entity instanceof EntityPlayer)) {
+               int ex = (int) Math.floor(entity.posX);
+               int ey = (int) Math.floor(entity.posY);
+               int ez = (int) Math.floor(entity.posZ);
+   
+               for (int[] coord : trackedCoords) {
+                   if (coord[0] == ex && coord[1] == ey && coord[2] == ez) {
+                       playMobSpawnSound(entity);
+                       toRemove.add(coord);
+                       break;
+                   }
+               }
+           }
+       }
+       trackedCoords.removeAll(toRemove);
+   }
+
+   private void playMobSpawnSound(Entity entity) {
+      if (mc.thePlayer == null || mc.theWorld == null) return;
+
+      // Using a generic mob ambient sound for simplicity
+      SoundEvent soundEvent = new SoundEvent(new ResourceLocation("entity.mob.ambient"));
+      mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, soundEvent, SoundCategory.PLAYERS, 1.0f, 1.0f, false);
+   }
+
+   
 }
