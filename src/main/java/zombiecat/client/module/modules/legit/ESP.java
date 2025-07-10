@@ -23,8 +23,6 @@ import java.util.List;
 
 public class ESP extends Module {
 
-   private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
-
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
       this.registerSetting(colorSetting);
@@ -263,15 +261,5 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y + entity.height, z);
    }
 
-   private int getESPColorRGB() {
-      switch (colorSetting.getValue().toLowerCase()) {
-         case "black":
-            return Color.black.getRGB();
-         case "white":
-            return Color.white.getRGB();
-         case "green":
-         default:
-            return Color.green.getRGB();
-      }
    }
 }
