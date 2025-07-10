@@ -83,7 +83,11 @@ public class MixinEntityRenderer {
          }
 
          if (IgnoreEntity.isOn) {
-            list.removeIf(tempEntity -> !(tempEntity instanceof EntityArmorStand) && !(tempEntity instanceof EntityPlayer));
+             list.removeIf(tempEntity ->
+                 tempEntity instanceof EntityArmorStand ||           // Ignore armor stands
+                 (tempEntity instanceof EntityLivingBase &&
+                  !((EntityLivingBase) tempEntity).isCreatureType(EnumCreatureType.MONSTER, false)) // Ignore passive mobs
+             );
          }
 
          double d2 = d1;
