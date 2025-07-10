@@ -145,13 +145,10 @@ public class ESP extends Module {
       Color color = new Color(255, 0, 0, 150);
       for (Entity entity : entities) {
          if (entity != thePlayer) {
-            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
-                    && entity.getInventory() != null
-                    && entity.getInventory()[0] != null
-                    && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-
+               EntityLivingBase living = (EntityLivingBase) entity;
                ItemStack chest = living.getEquipmentInSlot(3);
                ItemStack legs = living.getEquipmentInSlot(2);
                ItemStack boots = living.getEquipmentInSlot(1);
@@ -226,7 +223,7 @@ public class ESP extends Module {
                }
             }
          }
-      }
+      
 
       GL11.glEnd();
 
@@ -236,7 +233,7 @@ public class ESP extends Module {
       GL11.glDepthMask(true);
       GL11.glDisable(GL11.GL_BLEND);
       GL11.glColor4f(1f, 1f, 1f, 1f);
-   }
+}
 
    private void drawTraces(Entity entity, Color color) {
       Entity thePlayer = mc.thePlayer;
@@ -258,6 +255,6 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y, z);
       GL11.glVertex3d(x, y + entity.height, z);
    }
+}
 
-   }
 
