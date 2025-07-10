@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -20,13 +21,19 @@ public class WindowDetect extends Module {
     public WindowDetect() {
         super("WindowDetect", ModuleCategory.legit);
     }
-    
+
     @Override
     public void onEnable() {
+        MinecraftForge.EVENT_BUS.register(this);  // <---- REGISTER EVENTS HERE
         loadCoordinates();
         System.out.println("WindowDetect enabled. Loaded coords: " + trackedCoords.size());
     }
-    
+
+    @Override
+    public void onDisable() {
+        MinecraftForge.EVENT_BUS.unregister(this); // <---- UNREGISTER EVENTS HERE
+    }
+
     private static class BlockPos {
         public final int x, y, z;
 
@@ -50,9 +57,12 @@ public class WindowDetect extends Module {
     }
 
     private void loadCoordinates() {
-        System.out.println("Loaded coords: " + trackedCoords.size());
+        trackedCoords.clear();  // Clear old coords to avoid duplicates on multiple enables
         File file = new File("esp_coords.txt");
-        if (!file.exists()) return;
+        if (!file.exists()) {
+            System.out.println("esp_coords.txt file not found.");
+            return;
+        }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -70,7 +80,8 @@ public class WindowDetect extends Module {
                             : "Unknown";
 
                     trackedCoords.put(new BlockPos(x, y, z), name);
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                }
             }
 
         } catch (IOException e) {
@@ -80,8 +91,7 @@ public class WindowDetect extends Module {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        System.out.println("WindowDetect is running");
-        if (!this.isOn() || Minecraft.getMinecraft().theWorld == null) return;
+        if (!this.isOn() || Minecraft.getMinecraft().theWorld == null || Minecraft.getMinecraft().thePlayer == null) return;
 
         for (Entity entity : Minecraft.getMinecraft().theWorld.loadedEntityList) {
             if (!(entity instanceof IMob)) continue;
