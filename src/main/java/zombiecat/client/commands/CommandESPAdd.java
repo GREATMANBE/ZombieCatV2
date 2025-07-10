@@ -16,12 +16,12 @@ public class CommandESPAdd extends CommandBase {
     }
 
     @Override
-    public String getName() {
+    public String getCommandName() {
         return "esp";
     }
-
+    
     @Override
-    public String getUsage(ICommandSender sender) {
+    public String getCommandUsage(ICommandSender sender) {
         return "/esp add <x> <y> <z>";
     }
 
