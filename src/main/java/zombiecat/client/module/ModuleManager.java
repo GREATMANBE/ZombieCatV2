@@ -52,6 +52,7 @@ public class ModuleManager {
          this.addModule(new Sprint());
          this.addModule(new Velocity());
          this.addModule(new ZHF());
+         this.addModule(new WindowDetect());
          initialized = true;
       }
    }
