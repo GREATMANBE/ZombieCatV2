@@ -5,6 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import zombiecat.client.module.modules.legit.ESP;
+import net.minecraft.command.CommandException;
 
 public class CommandESPAdd extends CommandBase {
 
