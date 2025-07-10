@@ -25,7 +25,6 @@ public class ESP extends Module {
 
    public ESP() {
       super("ESP", Module.ModuleCategory.legit);
-      this.registerSetting(colorSetting);
    }
 
    @SubscribeEvent
@@ -42,8 +41,6 @@ public class ESP extends Module {
                     && !(entity instanceof EntityPig)
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
-
-               int color = getESPColorRGB();
 
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
@@ -117,10 +114,10 @@ public class ESP extends Module {
                   } else if (chestGold && legsGold && bootsGold && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, color);
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
                   }
                } else {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, color);
+                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.green.getRGB());
                }
             }
          }
