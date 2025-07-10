@@ -42,7 +42,7 @@ public class ESP extends Module {
                     && !(entity instanceof EntityCow)
                     && entity.isEntityAlive()) {
 
-               if (entity instanceof EntityZombie && ((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
+                if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
                   Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
                }
                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
@@ -151,13 +151,6 @@ public class ESP extends Module {
                     && entity.getInventory()[0].getItem() == Items.diamond_sword) {
                drawTraces(entity, color);
             }
-
-            if (entity instanceof EntityZombie) {
-               EntityLivingBase living = (EntityLivingBase) entity;
-               if (living.isPotionActive(Potion.invisibility)) {
-                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
-                  continue; // ✅ Skip further checks, we've already drawn it
-               }
 
                ItemStack chest = living.getEquipmentInSlot(3);
                ItemStack legs = living.getEquipmentInSlot(2);
