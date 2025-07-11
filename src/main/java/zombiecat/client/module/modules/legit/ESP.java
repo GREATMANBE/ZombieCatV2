@@ -14,7 +14,7 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
-import zombiecat.client.module.setting.impl.SliderSetting;  // UPDATED import
+import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 
 import java.awt.*;
@@ -22,240 +22,227 @@ import java.util.List;
 
 public class ESP extends Module {
 
-    // Removed old StringSetting for color
-    // private final StringSetting colorSetting = new StringSetting("Color", "Green", "Green", "Black", "White");
+   private final SliderSetting redSetting = new SliderSetting("Red", 0, 0, 255, 1);
+   private final SliderSetting greenSetting = new SliderSetting("Green", 255, 0, 255, 1);
+   private final SliderSetting blueSetting = new SliderSetting("Blue", 0, 0, 255, 1);
 
-    // UPDATED: Added RGB sliders using SliderSetting with range 0-255
-    private final SliderSetting redSetting = new SliderSetting("Red", 0, 0, 255, 1);
-    private final SliderSetting greenSetting = new SliderSetting("Green", 255, 0, 255, 1);
-    private final SliderSetting blueSetting = new SliderSetting("Blue", 0, 0, 255, 1);
+   public ESP() {
+      super("ESP", Module.ModuleCategory.legit);
+      this.registerSetting(redSetting);
+      this.registerSetting(greenSetting);
+      this.registerSetting(blueSetting);
+   }
 
-    public ESP() {
-        super("ESP", Module.ModuleCategory.legit);
+   @SubscribeEvent
+   public void re(RenderWorldLastEvent e) {
+      if (Utils.Player.isPlayerInGame()) {
+         trace();
+         for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntityLivingBase
+                    && !(entity instanceof EntityArmorStand)
+                    && !(entity instanceof EntityWither)
+                    && !(entity instanceof EntityVillager)
+                    && !(entity instanceof EntityPlayer)
+                    && !(entity instanceof EntityChicken)
+                    && !(entity instanceof EntityPig)
+                    && !(entity instanceof EntityCow)
+                    && entity.isEntityAlive()) {
 
-        // Removed old colorSetting registration
-        // this.registerSetting(colorSetting);
+               int color = getESPColorRGB();
 
-        // UPDATED: Register RGB slider settings
-        this.registerSetting(redSetting);
-        this.registerSetting(greenSetting);
-        this.registerSetting(blueSetting);
-    }
+               if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild() && entity.getInventory() != null && entity.getInventory()[0] != null && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+               } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
+                  Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
+               } else if (entity instanceof EntityZombie) {
+                  EntityLivingBase living = (EntityLivingBase) entity;
+                  ItemStack chest = living.getEquipmentInSlot(3);
+                  ItemStack legs = living.getEquipmentInSlot(2);
+                  ItemStack boots = living.getEquipmentInSlot(1);
+                  ItemStack mainHand = living.getHeldItem();
 
-    @SubscribeEvent
-    public void re(RenderWorldLastEvent e) {
-        if (Utils.Player.isPlayerInGame()) {
-            trace();
-            for (Entity entity : mc.theWorld.loadedEntityList) {
-                if (entity instanceof EntityLivingBase
-                        && !(entity instanceof EntityArmorStand)
-                        && !(entity instanceof EntityWither)
-                        && !(entity instanceof EntityVillager)
-                        && !(entity instanceof EntityPlayer)
-                        && !(entity instanceof EntityChicken)
-                        && !(entity instanceof EntityPig)
-                        && !(entity instanceof EntityCow)
-                        && entity.isEntityAlive()) {
+                  boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                          chest.getTagCompound().hasKey("display") &&
+                          chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
-                    int color = getESPColorRGB();
+                  boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                          legs.getTagCompound().hasKey("display") &&
+                          legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
-                    if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
-                            && entity.getInventory() != null && entity.getInventory()[0] != null
-                            && entity.getInventory()[0].getItem() == Items.diamond_sword) {
-                        Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                    } else if (((EntityLivingBase) entity).isPotionActive(Potion.invisibility)) {
-                        Utils.HUD.drawBoxAroundEntity(entity, true, Color.blue.getRGB());
-                    } else if (entity instanceof EntityZombie) {
-                        EntityLivingBase living = (EntityLivingBase) entity;
-                        ItemStack chest = living.getEquipmentInSlot(3);
-                        ItemStack legs = living.getEquipmentInSlot(2);
-                        ItemStack boots = living.getEquipmentInSlot(1);
-                        ItemStack mainHand = living.getHeldItem();
+                  boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                          boots.getTagCompound().hasKey("display") &&
+                          boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
 
-                      boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                              chest.getTagCompound().hasKey("display") &&
-                              chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                      boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                              legs.getTagCompound().hasKey("display") &&
-                              legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                      boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                              boots.getTagCompound().hasKey("display") &&
-                              boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                      boolean chestLime = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                              chest.getTagCompound().hasKey("display") &&
-                              chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                      boolean legsLime = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                              legs.getTagCompound().hasKey("display") &&
-                              legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                      boolean bootsLime = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                              boots.getTagCompound().hasKey("display") &&
-                              boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                      boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                              chest.getTagCompound().hasKey("display") &&
-                              chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
-    
-                      boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                              legs.getTagCompound().hasKey("display") &&
-                              legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
-    
-                      boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                              boots.getTagCompound().hasKey("display") &&
-                              boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                              boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
+                  boolean chestLime = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                          chest.getTagCompound().hasKey("display") &&
+                          chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
 
+                  boolean legsLime = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                          legs.getTagCompound().hasKey("display") &&
+                          legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
 
-                        boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
-                        boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
+                  boolean bootsLime = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                          boots.getTagCompound().hasKey("display") &&
+                          boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
 
-                        boolean chestGold = chest != null && chest.getItem() == Items.golden_chestplate;
-                        boolean legsGold = legs != null && legs.getItem() == Items.golden_leggings;
-                        boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
+                  boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                          chest.getTagCompound().hasKey("display") &&
+                          chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
 
-                        if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                            Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                        } else if (chestLime && legsLime && bootsLime && holdingNothing) {
-                            Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                        } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
-                            Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                        } else if (chestGold && legsGold && bootsGold && holdingNothing) {
-                            Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
-                        } else {
-                            Utils.HUD.drawBoxAroundEntity(entity, true, color);
-                        }
-                    } else {
-                        Utils.HUD.drawBoxAroundEntity(entity, true, color);
-                    }
-                }
+                  boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                          legs.getTagCompound().hasKey("display") &&
+                          legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
+
+                  boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                          boots.getTagCompound().hasKey("display") &&
+                          boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                          boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
+
+                  boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
+                  boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
+
+                  boolean chestGold = chest != null && chest.getItem() == Items.golden_chestplate;
+                  boolean legsGold = legs != null && legs.getItem() == Items.golden_leggings;
+                  boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
+
+                  if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else if (chestLime && legsLime && bootsLime && holdingNothing) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else if (chestGold && legsGold && bootsGold && holdingNothing) {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                  } else {
+                     Utils.HUD.drawBoxAroundEntity(entity, true, color);
+                  }
+               } else {
+                  Utils.HUD.drawBoxAroundEntity(entity, true, color);
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    public void trace() {
-        Entity thePlayer = mc.thePlayer;
-        if (thePlayer == null) return;
+   public void trace() {
+      Entity thePlayer = mc.thePlayer;
+      if (thePlayer == null) return;
 
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glEnable(GL11.GL_LINE_SMOOTH);
-        GL11.glLineWidth(2);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        GL11.glDepthMask(false);
+      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+      GL11.glEnable(GL11.GL_BLEND);
+      GL11.glEnable(GL11.GL_LINE_SMOOTH);
+      GL11.glLineWidth(2);
+      GL11.glDisable(GL11.GL_TEXTURE_2D);
+      GL11.glDisable(GL11.GL_DEPTH_TEST);
+      GL11.glDepthMask(false);
 
-        GL11.glBegin(GL11.GL_LINES);
+      GL11.glBegin(GL11.GL_LINES);
 
-        List<Entity> entities = mc.theWorld.loadedEntityList;
-        Color color = new Color(255, 0, 0, 150);
-        for (Entity entity : entities) {
-            if (entity != thePlayer) {
-                if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
-                        && entity.getInventory() != null
-                        && entity.getInventory()[0] != null
-                        && entity.getInventory()[0].getItem() == Items.diamond_sword) {
-                    drawTraces(entity, color);
-                }
-
-                if (entity instanceof EntityZombie) {
-                    EntityLivingBase living = (EntityLivingBase) entity;
-                    ItemStack chest = living.getEquipmentInSlot(3);
-                    ItemStack legs = living.getEquipmentInSlot(2);
-                    ItemStack boots = living.getEquipmentInSlot(1);
-                    ItemStack mainHand = living.getHeldItem();
-
-                   boolean chestLime = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                           chest.getTagCompound().hasKey("display") &&
-                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                   boolean legsLime = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                           legs.getTagCompound().hasKey("display") &&
-                           legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                   boolean bootsLime = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                           boots.getTagCompound().hasKey("display") &&
-                           boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
-    
-                   boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                           chest.getTagCompound().hasKey("display") &&
-                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                   boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                           legs.getTagCompound().hasKey("display") &&
-                           legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                   boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                           boots.getTagCompound().hasKey("display") &&
-                           boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
-    
-                   boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
-                           chest.getTagCompound().hasKey("display") &&
-                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
-    
-                   boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
-                           legs.getTagCompound().hasKey("display") &&
-                           legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
-    
-                   boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
-                           boots.getTagCompound().hasKey("display") &&
-                           boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
-                           boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
-
-                    boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
-                    boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
-
-                    boolean chestGold = chest != null && chest.getItem() == Items.golden_chestplate;
-                    boolean legsGold = legs != null && legs.getItem() == Items.golden_leggings;
-                    boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
-
-                    if (chestLime && legsLime && bootsLime && holdingNothing) {
-                        drawTraces(entity, new Color(255, 0, 0, 150));
-                    }
-
-                    if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                        drawTraces(entity, new Color(255, 0, 0, 150));
-                    }
-
-                    if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
-                        drawTraces(entity, new Color(255, 0, 0, 150));
-                    }
-
-                    if (chestGold && legsGold && bootsGold && holdingNothing) {
-                        drawTraces(entity, new Color(255, 0, 0, 150));
-                    }
-                }
+      List<Entity> entities = mc.theWorld.loadedEntityList;
+      Color color = new Color(255, 0, 0, 150);
+      for (Entity entity : entities) {
+         if (entity != thePlayer) {
+            if (entity instanceof EntityZombie && ((EntityZombie) entity).isChild()
+                    && entity.getInventory() != null
+                    && entity.getInventory()[0] != null
+                    && entity.getInventory()[0].getItem() == Items.diamond_sword) {
+               drawTraces(entity, color);
             }
-        }
 
-        GL11.glEnd();
+            if (entity instanceof EntityZombie) {
+               EntityLivingBase living = (EntityLivingBase) entity;
+               ItemStack chest = living.getEquipmentInSlot(3);
+               ItemStack legs = living.getEquipmentInSlot(2);
+               ItemStack boots = living.getEquipmentInSlot(1);
+               ItemStack mainHand = living.getHeldItem();
 
-        GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_LINE_SMOOTH);
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-        GL11.glDepthMask(true);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glColor4f(1f, 1f, 1f, 1f);
-    }
+               boolean chestLime = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                       chest.getTagCompound().hasKey("display") &&
+                       chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+               boolean legsLime = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                       legs.getTagCompound().hasKey("display") &&
+                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+               boolean bootsLime = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                       boots.getTagCompound().hasKey("display") &&
+                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x55FF55;
+
+               boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                       chest.getTagCompound().hasKey("display") &&
+                       chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               boolean legsBlack = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                       legs.getTagCompound().hasKey("display") &&
+                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               boolean bootsBlack = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                       boots.getTagCompound().hasKey("display") &&
+                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0x000000;
+
+               boolean chestYellow = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
+                       chest.getTagCompound().hasKey("display") &&
+                       chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       chest.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFFAA00;
+
+               boolean legsYellow = legs != null && legs.getItem() == Items.leather_leggings && legs.hasTagCompound() &&
+                       legs.getTagCompound().hasKey("display") &&
+                       legs.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       legs.getTagCompound().getCompoundTag("display").getInteger("color") == 0xFF5555;
+
+               boolean bootsYellow = boots != null && boots.getItem() == Items.leather_boots && boots.hasTagCompound() &&
+                       boots.getTagCompound().hasKey("display") &&
+                       boots.getTagCompound().getCompoundTag("display").hasKey("color") &&
+                       boots.getTagCompound().getCompoundTag("display").getInteger("color") == 0xAA0000;
+
+               boolean holdingGoldSword = mainHand != null && mainHand.getItem() == Items.golden_sword;
+               boolean holdingNothing = mainHand == null || mainHand.getItem() == null;
+
+               boolean chestGold = chest != null && chest.getItem() == Items.golden_chestplate;
+               boolean legsGold = legs != null && legs.getItem() == Items.golden_leggings;
+               boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
+
+               if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
+                  drawTraces(entity, Color.red);
+               } else if (chestLime && legsLime && bootsLime && holdingNothing) {
+                  drawTraces(entity, Color.red);
+               } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
+                  drawTraces(entity, Color.red);
+               } else if (chestGold && legsGold && bootsGold && holdingNothing) {
+                  drawTraces(entity, Color.red);
+               } else {
+                  drawTraces(entity, color);
+               }
+            } else if (entity.isEntityAlive() && !(entity instanceof EntityPlayer) && !(entity instanceof EntityArmorStand)) {
+               drawTraces(entity, color);
+            }
+         }
+      }
+      
+
+      GL11.glEnd();
+
+      GL11.glEnable(GL11.GL_TEXTURE_2D);
+      GL11.glDisable(GL11.GL_LINE_SMOOTH);
+      GL11.glEnable(GL11.GL_DEPTH_TEST);
+      GL11.glDepthMask(true);
+      GL11.glDisable(GL11.GL_BLEND);
+      GL11.glColor4f(1f, 1f, 1f, 1f);
+   }
 
    private void drawTraces(Entity entity, Color color) {
       Entity thePlayer = mc.thePlayer;
@@ -278,11 +265,10 @@ public class ESP extends Module {
       GL11.glVertex3d(x, y + entity.height, z);
    }
 
-    // UPDATED: Calculate color using the RGB slider settings
-    private int getESPColorRGB() {
-        int r = (int) redSetting.getValue();
-        int g = (int) greenSetting.getValue();
-        int b = (int) blueSetting.getValue();
-        return new Color(r, g, b).getRGB();
-    }
-}
+      private int getESPColorRGB() {
+          int r = (int) redSetting.getValue();
+          int g = (int) greenSetting.getValue();
+          int b = (int) blueSetting.getValue();
+          return new Color(r, g, b).getRGB();
+      }
+   }
