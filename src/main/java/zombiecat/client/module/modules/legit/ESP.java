@@ -61,6 +61,23 @@ public class ESP extends Module {
                   ItemStack boots = living.getEquipmentInSlot(1);
                   ItemStack mainHand = living.getHeldItem();
 
+                  ItemStack helmet = entity.getEquipmentInSlot(4); // Slot 4 = helmet
+
+                  if (helmet != null && helmet.getItem() == Items.skull) {
+                      NBTTagCompound tag = helmet.getTagCompound();
+                  
+                      if (tag != null && tag.hasKey("SkullOwner", Constants.NBT.TAG_COMPOUND)) {
+                          NBTTagCompound skullOwner = tag.getCompoundTag("SkullOwner");
+                  
+                          if (skullOwner.hasKey("Id")) {
+                              String uuidString = skullOwner.getString("Id");
+                              UUID skullUUID = UUID.fromString(uuidString);
+                              System.out.println("Skull UUID: " + skullUUID);
+                          }
+                      }
+                  }
+
+
                   boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                           chest.getTagCompound().hasKey("display") &&
                           chest.getTagCompound().getCompoundTag("display").hasKey("color") &&
