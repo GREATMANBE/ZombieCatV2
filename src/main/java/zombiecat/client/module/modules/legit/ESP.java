@@ -16,12 +16,13 @@ import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-
+import zombiecat.client.module.setting.impl.BooleanSetting;
 import java.awt.*;
 import java.util.List;
 
 public class ESP extends Module {
-
+   
+   private final BooleanSetting bombieTracer = new BooleanSetting("BombieTracer", true);
    private final SliderSetting redSetting = new SliderSetting("Red", 0, 0, 255, 1);
    private final SliderSetting greenSetting = new SliderSetting("Green", 255, 0, 255, 1);
    private final SliderSetting blueSetting = new SliderSetting("Blue", 0, 0, 255, 1);
@@ -31,6 +32,7 @@ public class ESP extends Module {
       this.registerSetting(redSetting);
       this.registerSetting(greenSetting);
       this.registerSetting(blueSetting);
+      this.registerSetting(bombieTracer);
    }
 
    @SubscribeEvent
@@ -114,7 +116,11 @@ public class ESP extends Module {
                   boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
 
                   if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                     Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                      if (bombieTracer.isEnabled()) {
+                          Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
+                      } else {
+                          Utils.HUD.drawBoxAroundEntity(entity, true, color);
+                      }
                   } else if (chestLime && legsLime && bootsLime && holdingNothing) {
                      Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                   } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
@@ -217,7 +223,10 @@ public class ESP extends Module {
                boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
 
                if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                  drawTraces(entity, Color.red);
+                   if (bombieTracer.isEnabled()) {
+                       drawTraces(entity, Color.red);
+                   }
+                   // else: no tracer at all              
                } else if (chestLime && legsLime && bootsLime && holdingNothing) {
                   drawTraces(entity, Color.red);
                } else if (chestYellow && legsYellow && bootsYellow && holdingGoldSword) {
