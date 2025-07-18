@@ -116,7 +116,7 @@ public class ESP extends Module {
                   boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
 
                   if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                      if (bombieTracer.isEnabled()) {
+                      if (bombieTracer.getValue()) {
                           Utils.HUD.drawBoxAroundEntity(entity, true, Color.red.getRGB());
                       } else {
                           Utils.HUD.drawBoxAroundEntity(entity, true, color);
@@ -223,7 +223,7 @@ public class ESP extends Module {
                boolean bootsGold = boots != null && boots.getItem() == Items.golden_boots;
 
                if (chestBlack && legsBlack && bootsBlack && holdingNothing && !((EntityZombie) entity).isChild()) {
-                   if (bombieTracer.isEnabled()) {
+                   if (bombieTracer.getValue()) {
                        drawTraces(entity, Color.red);
                    }
                    // else: no tracer at all              
