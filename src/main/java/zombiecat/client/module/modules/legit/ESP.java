@@ -16,9 +16,6 @@ import org.lwjgl.opengl.GL11;
 import zombiecat.client.module.Module;
 import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
-import net.minecraft.nbt.NBTTagCompound;
-import java.util.UUID;
-
 
 import java.awt.*;
 import java.util.List;
@@ -63,23 +60,6 @@ public class ESP extends Module {
                   ItemStack legs = living.getEquipmentInSlot(2);
                   ItemStack boots = living.getEquipmentInSlot(1);
                   ItemStack mainHand = living.getHeldItem();
-
-                  ItemStack helmet = ((EntityLivingBase) entity).getEquipmentInSlot(4);  // Slot 4 = helmet
-
-                  if (helmet != null && helmet.getItem() == Items.skull) {
-                      NBTTagCompound tag = helmet.getTagCompound();
-                  
-                      if (tag != null && tag.hasKey("SkullOwner", 10)) {
-                          NBTTagCompound skullOwner = tag.getCompoundTag("SkullOwner");
-                  
-                          if (skullOwner.hasKey("Id")) {
-                              String uuidString = skullOwner.getString("Id");
-                              UUID skullUUID = UUID.fromString(uuidString);
-                              System.out.println("Skull UUID: " + skullUUID);
-                          }
-                      }
-                  }
-
 
                   boolean chestBlack = chest != null && chest.getItem() == Items.leather_chestplate && chest.hasTagCompound() &&
                           chest.getTagCompound().hasKey("display") &&
