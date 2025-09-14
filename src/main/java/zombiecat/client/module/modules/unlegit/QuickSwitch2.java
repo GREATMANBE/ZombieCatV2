@@ -217,6 +217,7 @@ public class QuickSwitch2 extends Module {
       windowId = mc.thePlayer.openContainer.windowId;
    }
 
+   // 🔧 Changed: collapsed from 4 ticks → 2 ticks
    private void processReloadSequence() {
       if (mc.thePlayer == null) {
          finishSequence();
@@ -227,17 +228,19 @@ public class QuickSwitch2 extends Module {
 
       try {
          switch (tickCounter) {
-            case 1: openInventoryServerSide(); break;
-            case 2: clickMagicSlot(); break;
-            case 3: swapItemBack(); break;
-            case 4:
+            case 1:
+               // Do both open + click in same tick
+               openInventoryServerSide();
+               clickMagicSlot();
+               break;
+            case 2:
+               // Do both swap + close in same tick
+               swapItemBack();
                closeInventoryServerSide();
                finishSequence();
                break;
             default:
-               if (tickCounter > 6) {
-                  finishSequence();
-               }
+               finishSequence();
                break;
          }
       } catch (Exception e) {
