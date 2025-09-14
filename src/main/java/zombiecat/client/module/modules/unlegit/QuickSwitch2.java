@@ -37,7 +37,6 @@ public class QuickSwitch2 extends Module {
    // --- NoReload fields ---
    private boolean isProcessing = false;
    private int tickCounter = 0;
-   private int originalSlot = -1;
    private ItemStack originalItem = null;
    private int windowId = 0;
    private short actionNumber = 1;
@@ -212,12 +211,11 @@ public class QuickSwitch2 extends Module {
 
       isProcessing = true;
       tickCounter = 0;
-      originalSlot = mc.thePlayer.inventory.currentItem;
       originalItem = heldItem.copy();
       windowId = mc.thePlayer.openContainer.windowId;
    }
 
-   // 🔧 Changed: collapsed from 4 ticks → 2 ticks
+   // 2-tick cycle
    private void processReloadSequence() {
       if (mc.thePlayer == null) {
          finishSequence();
@@ -265,6 +263,7 @@ public class QuickSwitch2 extends Module {
       );
    }
 
+   // 🔧 Modified: no more forced hotbar slot swap
    private void swapItemBack() {
       Container container = mc.thePlayer.inventoryContainer;
 
@@ -273,9 +272,10 @@ public class QuickSwitch2 extends Module {
          ItemStack stackInSlot = slot.getStack();
 
          if (stackInSlot != null && ItemStack.areItemsEqual(stackInSlot, originalItem)) {
+            // Just click the slot normally, don't push it back to original hotbar slot
             mc.getNetHandler().addToSendQueue(
                new C0EPacketClickWindow(
-                  windowId, i, originalSlot, 2, stackInSlot, actionNumber++
+                  windowId, i, 0, 0, stackInSlot, actionNumber++
                )
             );
             break;
@@ -292,7 +292,6 @@ public class QuickSwitch2 extends Module {
    private void finishSequence() {
       isProcessing = false;
       tickCounter = 0;
-      originalSlot = -1;
       originalItem = null;
    }
 
