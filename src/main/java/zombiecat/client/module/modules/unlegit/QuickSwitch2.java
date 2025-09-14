@@ -185,9 +185,8 @@ public class QuickSwitch2 extends Module {
          return;
       }
 
-      // Only trigger when right-click use item is held
-      boolean isUsingItem = mc.gameSettings.keyBindUseItem.isKeyDown();
-      if (isUsingItem && mc.thePlayer.getHeldItem() != null) {
+      // If player is still firing, keep restarting NoReload automatically
+      if (mc.gameSettings.keyBindUseItem.isKeyDown() && mc.thePlayer.getHeldItem() != null) {
          startNoReloadSequence();
       }
    }
@@ -290,6 +289,7 @@ public class QuickSwitch2 extends Module {
       tickCounter = 0;
       originalSlot = -1;
       originalItem = null;
+      // tick handler will immediately restart if right-click is still held
    }
 
    @SubscribeEvent
