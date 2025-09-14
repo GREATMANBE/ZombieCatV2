@@ -15,7 +15,7 @@ import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import zombiecat.client.utils.WatchTimer;
 
-public class QuickSwitch2 extends Module
+public class QuickSwitch2 extends Module {
     public static BooleanSetting onlyFire;
     public static SliderSetting delay;
     public static BooleanSetting anySlot;
@@ -27,7 +27,7 @@ public class QuickSwitch2 extends Module
     private final WatchTimer timer = new WatchTimer();
     boolean hold = false;
 
-    public QuickSwitch() {
+    public QuickSwitch2() {
         super("QuickSwitch", Module.ModuleCategory.unlegit);
         this.registerSetting(onlyFire = new BooleanSetting("OnlyFire", true));
         this.registerSetting(delay = new SliderSetting("Delay", 50.0, 0.0, 80.0, 1.0));
