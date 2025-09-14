@@ -41,6 +41,7 @@ public class QuickSwitch2 extends Module {
    private ItemStack originalItem = null;
    private int windowId = 0;
    private short actionNumber = 1;
+   private final WatchTimer noReloadTimer = new WatchTimer(); // timer for interval
 
    public QuickSwitch2() {
       super("QuickSwitch2", Module.ModuleCategory.unlegit);
@@ -60,7 +61,11 @@ public class QuickSwitch2 extends Module {
          if (mc.gameSettings.showDebugInfo) {
             return;
          }
-         mc.fontRendererObj.drawStringWithShadow("Preset:2 " +"Slot2:" + s2.getValue() + " Slot3:" + s3.getValue() + " Slot4:" + s4.getValue() + " Delay:" + delay.getValue(), 10, 10, 0xFFFFFF);
+         mc.fontRendererObj.drawStringWithShadow("Preset:2 " +
+            "Slot2:" + s2.getValue() + " " +
+            "Slot3:" + s3.getValue() + " " +
+            "Slot4:" + s4.getValue() + " " +
+            "Delay:" + delay.getValue(), 10, 10, 0xFFFFFF);
       }
    }
 
@@ -172,22 +177,25 @@ public class QuickSwitch2 extends Module {
       }
    }
 
-   // --- NoReload tick handler ---
+   // --- NoReload tied to QuickSwitch delay ---
    @SubscribeEvent
    public void onClientTick(TickEvent.ClientTickEvent event) {
       if (event.phase != TickEvent.Phase.START || mc.thePlayer == null || mc.theWorld == null) {
          return;
       }
 
-      // Handle ongoing NoReload sequence
+      // If a NoReload sequence is in progress, keep processing
       if (isProcessing) {
          processReloadSequence();
          return;
       }
 
-      // If player is still firing, keep restarting NoReload automatically
+      // If firing, trigger NoReload at same interval as QuickSwitch
       if (mc.gameSettings.keyBindUseItem.isKeyDown() && mc.thePlayer.getHeldItem() != null) {
-         startNoReloadSequence();
+         if (noReloadTimer.passed(delay.getValue())) {
+            noReloadTimer.reset();
+            startNoReloadSequence();
+         }
       }
    }
 
@@ -219,15 +227,9 @@ public class QuickSwitch2 extends Module {
 
       try {
          switch (tickCounter) {
-            case 1:
-               openInventoryServerSide();
-               break;
-            case 2:
-               clickMagicSlot();
-               break;
-            case 3:
-               swapItemBack();
-               break;
+            case 1: openInventoryServerSide(); break;
+            case 2: clickMagicSlot(); break;
+            case 3: swapItemBack(); break;
             case 4:
                closeInventoryServerSide();
                finishSequence();
@@ -289,7 +291,6 @@ public class QuickSwitch2 extends Module {
       tickCounter = 0;
       originalSlot = -1;
       originalItem = null;
-      // tick handler will immediately restart if right-click is still held
    }
 
    @SubscribeEvent
