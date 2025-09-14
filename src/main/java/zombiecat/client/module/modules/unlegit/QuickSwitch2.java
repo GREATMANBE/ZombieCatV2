@@ -36,7 +36,6 @@ public class QuickSwitch2 extends Module {
 
    // --- NoReload fields ---
    private boolean isProcessing = false;
-   private int tickCounter = 0;
    private ItemStack originalItem = null;
    private int windowId = 0;
    private short actionNumber = 1;
@@ -183,13 +182,12 @@ public class QuickSwitch2 extends Module {
          return;
       }
 
-      // If a NoReload sequence is in progress, keep processing
       if (isProcessing) {
-         processReloadSequence();
+         // In 1-tick mode, processing = just finish instantly
+         doNoReloadNow();
          return;
       }
 
-      // If firing, trigger NoReload at same interval as QuickSwitch
       if (mc.gameSettings.keyBindUseItem.isKeyDown() && mc.thePlayer.getHeldItem() != null) {
          if (noReloadTimer.passed(delay.getValue())) {
             noReloadTimer.reset();
@@ -198,7 +196,6 @@ public class QuickSwitch2 extends Module {
       }
    }
 
-   // --- NoReload core methods ---
    private void startNoReloadSequence() {
       if (mc.currentScreen != null || isProcessing) {
          return;
@@ -210,40 +207,23 @@ public class QuickSwitch2 extends Module {
       }
 
       isProcessing = true;
-      tickCounter = 0;
       originalItem = heldItem.copy();
       windowId = mc.thePlayer.openContainer.windowId;
+
+      // do everything instantly
+      doNoReloadNow();
    }
 
-   // 2-tick cycle
-   private void processReloadSequence() {
-      if (mc.thePlayer == null) {
-         finishSequence();
-         return;
-      }
-
-      tickCounter++;
-
+   // --- Instant NoReload (all packets same tick) ---
+   private void doNoReloadNow() {
       try {
-         switch (tickCounter) {
-            case 1:
-               // Do both open + click in same tick
-               openInventoryServerSide();
-               clickMagicSlot();
-               break;
-            case 2:
-               // Do both swap + close in same tick
-               swapItemBack();
-               closeInventoryServerSide();
-               finishSequence();
-               break;
-            default:
-               finishSequence();
-               break;
-         }
-      } catch (Exception e) {
-         finishSequence();
-      }
+         openInventoryServerSide();
+         clickMagicSlot();
+         swapItemBack();
+         closeInventoryServerSide();
+      } catch (Exception ignored) {}
+
+      finishSequence();
    }
 
    private void openInventoryServerSide() {
@@ -272,7 +252,7 @@ public class QuickSwitch2 extends Module {
          ItemStack stackInSlot = slot.getStack();
 
          if (stackInSlot != null && ItemStack.areItemsEqual(stackInSlot, originalItem)) {
-            // Just click the slot normally, don't push it back to original hotbar slot
+            // Just click normally
             mc.getNetHandler().addToSendQueue(
                new C0EPacketClickWindow(
                   windowId, i, 0, 0, stackInSlot, actionNumber++
@@ -291,7 +271,6 @@ public class QuickSwitch2 extends Module {
 
    private void finishSequence() {
       isProcessing = false;
-      tickCounter = 0;
       originalItem = null;
    }
 
