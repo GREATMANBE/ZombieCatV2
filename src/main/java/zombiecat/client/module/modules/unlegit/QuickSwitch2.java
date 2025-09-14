@@ -15,7 +15,7 @@ import zombiecat.client.module.setting.impl.SliderSetting;
 import zombiecat.client.utils.Utils;
 import zombiecat.client.utils.WatchTimer;
 
-public class QuickSwitch extends Module {
+public class QuickSwitch2 extends Module
     public static BooleanSetting onlyFire;
     public static SliderSetting delay;
     public static BooleanSetting anySlot;
