@@ -23,7 +23,7 @@ public class QuickSwitch2 extends Module {
     public static BooleanSetting s3;
     public static BooleanSetting s4;
     public static SliderSetting check;
-    public static QuickSwitch INSTANCE;
+    public static QuickSwitch2 INSTANCE;
     private final WatchTimer timer = new WatchTimer();
     boolean hold = false;
 
