@@ -47,6 +47,7 @@ public class ModuleManager {
          this.addModule(new QuickSwitch());
          this.addModule(new QuickSwitch2());
          this.addModule(new QuickSwitch3());
+         this.addModule(new Slot6Clicker());
          this.addModule(new Switch());
          this.addModule(new Reach());
          this.addModule(new RightClicker());
