@@ -54,7 +54,7 @@ public class QuickSwitch3 extends Module {
         INSTANCE = this;
     }
 
-    @Override
+
     public String getHudLabel() {
         if (!hudDisplay.getValue())
             return getName();
